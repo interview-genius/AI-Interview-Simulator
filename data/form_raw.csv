@@ -1,0 +1,148 @@
+source,source_url,raw_text,company_guess,role_guess,submitted_at
+form,form://response/0,"Company: Maxopp Global
+Role: Software Developer
+Which round was this?: Technical Round 1
+Interview mode: In-person
+Roughly how long did it last?: 45-60 min
+What questions were asked? (as close to exact as you remember): Some questions were related to android development tools(adb, android sdks, java vs kotlin), react native fundamentals, difference between native android and js bundles.  Most of the time was given to dsa questions from 2-D dp. 
+What kind of round was it?: DSA, Coding, Behavioral
+How much freedom did you have in your approach?: Got some hints along the way
+When you got stuck, what did the interviewer do?: Helped me get unstuck
+Did they probe deeper with follow-up questions?: Asked a few
+Overall pace of the interview: Moderate
+Interviewer's general vibe: Friendly and warm
+Did you clear this round?: No
+Roughly when did this interview happen?: 25th April 2026
+Anything you'd prepare differently in hindsight?: Probably going low level in coding will help rather than gaining breadth by studying multiple concepts if the job role is specialized.",Maxopp Global,Software Developer,2026-07-11T16:36:00.950000+00:00
+form,form://response/1,"Company: Salesforce
+Role: Sde
+Which round was this?: Technical Round 1
+Interview mode: Video call
+Roughly how long did it last?: 30–45 min
+What questions were asked? (as close to exact as you remember): Sql, dsa, os etc
+What kind of round was it?: DSA, Coding, System Design, Behavioral
+How much freedom did you have in your approach?: I picked my own approach freely
+When you got stuck, what did the interviewer do?: Stayed silent, let me work through it
+Did they probe deeper with follow-up questions?: Yes, dug deep into my reasoning
+Overall pace of the interview: Relaxed
+Interviewer's general vibe: Friendly and warm
+Did you clear this round?: Yes
+Roughly when did this interview happen?: 2024",Salesforce,Sde,2026-07-19T16:11:18.331000+00:00
+form,form://response/2,"Company: Barclays
+Role: Technology Developer Intern
+Which round was this?: Technical Round 1
+Interview mode: Video call
+Roughly how long did it last?: 45-60 min
+What questions were asked? (as close to exact as you remember): Questions related to DSA, projects build and about Teamwork 
+What kind of round was it?: DSA, Behavioral
+How much freedom did you have in your approach?: I picked my own approach freely
+When you got stuck, what did the interviewer do?: Helped me get unstuck
+Did they probe deeper with follow-up questions?: Asked a few
+Overall pace of the interview: Relaxed
+Interviewer's general vibe: Friendly and warm
+Did you clear this round?: Yes
+Roughly when did this interview happen?: 2023",Barclays,Technology Developer Intern,2026-07-19T16:23:32.002000+00:00
+form,form://response/3,"Company: Kotak
+Role: SDE-1
+Which round was this?: Technical Round 1
+Interview mode: Video call
+Roughly how long did it last?: 45-60 min
+What questions were asked? (as close to exact as you remember): DSA, system design 
+What kind of round was it?: DSA, Coding, System Design
+How much freedom did you have in your approach?: Got some hints along the way
+When you got stuck, what did the interviewer do?: Helped me get unstuck
+Did they probe deeper with follow-up questions?: Yes, dug deep into my reasoning
+Overall pace of the interview: Moderate
+Interviewer's general vibe: Neutral and professional
+Did you clear this round?: Yes
+Roughly when did this interview happen?: June 2026",Kotak,SDE-1,2026-07-19T16:24:31.286000+00:00
+form,form://response/4,"Company: Paypal
+Role: SDE-1 Python & Java
+Which round was this?: Bar Raiser
+Interview mode: Video call
+Roughly how long did it last?: Over 60 min
+What questions were asked? (as close to exact as you remember): Thinking, Use of AI, About current work and responsibilities 
+What kind of round was it?: System Design, Behavioral
+How much freedom did you have in your approach?: Got some hints along the way
+When you got stuck, what did the interviewer do?: Helped me get unstuck
+Did they probe deeper with follow-up questions?: Yes, dug deep into my reasoning
+Overall pace of the interview: Moderate
+Interviewer's general vibe: Friendly and warm
+Did you clear this round?: Yes
+Roughly when did this interview happen?: Feb 2026",Paypal,SDE-1 Python & Java,2026-07-19T16:25:46.501000+00:00
+form,form://response/5,"Company: Square Yards
+Role: Manager
+Which round was this?: Hiring Manager
+Interview mode: Video call
+Roughly how long did it last?: 30–45 min
+What questions were asked? (as close to exact as you remember): Tell me about yourself, data analysis, business planning, process optimization, client and stakeholder management, market trend analysis, biggest achievement, why Square Yards, current/expected CTC, and notice period.
+What kind of round was it?: System Design, Behavioral, Case Study
+How much freedom did you have in your approach?: I picked my own approach freely
+When you got stuck, what did the interviewer do?: I didn't get stuck
+Did they probe deeper with follow-up questions?: Asked a few
+Overall pace of the interview: Moderate
+Interviewer's general vibe: Neutral and professional
+Did you clear this round?: Yes
+Roughly when did this interview happen?: February 2025
+Anything you'd prepare differently in hindsight?: I'd prepare more examples from past projects and revise key business scenarios.",Square Yards,Manager,2026-07-20T13:30:15.580000+00:00
+form,form://response/6,"Company: Amazon
+Role: SDE
+Which round was this?: Bar Raiser
+Interview mode: Video call
+Roughly how long did it last?: Over 60 min
+What questions were asked? (as close to exact as you remember): LPs, subjects, deep dive into projects
+What kind of round was it?: Behavioral, Case Study, Project discussion
+How much freedom did you have in your approach?: I picked my own approach freely
+When you got stuck, what did the interviewer do?: I didn't get stuck
+Did they probe deeper with follow-up questions?: Yes, dug deep into my reasoning
+Overall pace of the interview: Relaxed
+Interviewer's general vibe: Friendly and warm
+Did you clear this round?: Yes
+Roughly when did this interview happen?: 10 months ago",Amazon,SDE,2026-07-21T20:31:11.401000+00:00
+form,form://response/7,"Company: Nagarro
+Role: Associate Software Trainee
+Which round was this?: Technical Round 1
+Interview mode: Video call
+Roughly how long did it last?: Under 30 min
+What questions were asked? (as close to exact as you remember): Dutch National Flag Algorithm
+Reverse a LinkedList
+Find middle node of the linkedlist
+Palindrome valid in a linkedlist
+What kind of round was it?: DSA
+How much freedom did you have in your approach?: I picked my own approach freely
+When you got stuck, what did the interviewer do?: Helped me get unstuck
+Did they probe deeper with follow-up questions?: Asked a few
+Overall pace of the interview: Relaxed
+Interviewer's general vibe: Friendly and warm
+Did you clear this round?: Yes
+Roughly when did this interview happen?: April 2026
+Anything you'd prepare differently in hindsight?: DSA alone is sufficient",Nagarro,Associate Software Trainee,2026-07-21T21:26:18.529000+00:00
+form,form://response/8,"Company: IEM
+Role: Tech
+Which round was this?: Online Assessment (OA)
+Interview mode: In-person
+Roughly how long did it last?: Under 30 min
+What questions were asked? (as close to exact as you remember): How to find out today's date using SQL query?
+What kind of round was it?: Coding
+How much freedom did you have in your approach?: Got some hints along the way
+When you got stuck, what did the interviewer do?: Helped me get unstuck
+Did they probe deeper with follow-up questions?: Asked a few
+Overall pace of the interview: Moderate
+Interviewer's general vibe: Neutral and professional
+Did you clear this round?: Maybe
+Roughly when did this interview happen?: 2 weeks ago",IEM,Tech,2026-07-24T10:51:51.076000+00:00
+form,form://response/9,"Company: TCS
+Role: Graduate trainee
+Which round was this?: HR
+Interview mode: In-person
+Roughly how long did it last?: Under 30 min
+What questions were asked? (as close to exact as you remember): The questions were mostly from my resume . And in technical aspect I would say that they asked me some dsa related question , database , Github , Sql , and some behavioural questions
+What kind of round was it?: This interview was combined with all the aspect
+How much freedom did you have in your approach?: Got some hints along the way
+When you got stuck, what did the interviewer do?: I didn't get stuck
+Did they probe deeper with follow-up questions?: Yes, dug deep into my reasoning
+Overall pace of the interview: Relaxed
+Interviewer's general vibe: Friendly and warm
+Did you clear this round?: Yes
+Roughly when did this interview happen?: Around march 2026
+Anything you'd prepare differently in hindsight?: Consistently revising my fundamentals",TCS,Graduate trainee,2026-07-26T09:22:26.436000+00:00
