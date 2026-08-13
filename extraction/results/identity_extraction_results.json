@@ -1,0 +1,167 @@
+[
+  {
+    "raw_report_id": 5,
+    "source_url": "http://reddit.com/r/csMajors/comments/1l6p2e7/google_interview_experience_swe/",
+    "extraction": {
+      "company": "Google",
+      "role": "SWE New Grad",
+      "year": 2024,
+      "outcome": "selected"
+    },
+    "raw_model_output": "{\"company\": \"Google\", \"role\": \"SWE New Grad\", \"year\": 2024, \"outcome\": \"selected\"}"
+  },
+  {
+    "raw_report_id": 6,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1qu773e/google_interview_experience/",
+    "extraction": {
+      "company": "Google",
+      "role": null,
+      "year": null,
+      "outcome": "unknown"
+    },
+    "raw_model_output": "{\n  \"company\": \"Google\",\n  \"role\": null,\n  \"year\": null,\n  \"outcome\": \"unknown\"\n}"
+  },
+  {
+    "raw_report_id": 7,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1t6j3rr/google_early_career_round_2_onsite_interview/",
+    "extraction": {
+      "company": "Google",
+      "role": "Early Career Campus",
+      "year": null,
+      "outcome": "unknown"
+    },
+    "raw_model_output": "{\n  \"company\": \"Google\",\n  \"role\": \"Early Career Campus\",\n  \"year\": null,\n  \"outcome\": \"unknown\"\n}"
+  },
+  {
+    "raw_report_id": 8,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1uksrin/i_need_advice_on_my_google_intern_interview/",
+    "extraction": {
+      "company": "Google",
+      "role": "Intern",
+      "year": null,
+      "outcome": "unknown"
+    },
+    "raw_model_output": "{\"company\": \"Google\", \"role\": \"Intern\", \"year\": null, \"outcome\": \"unknown\"}"
+  },
+  {
+    "raw_report_id": 9,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1opdel4/microsoft_interview_experience_azure_team_got/",
+    "extraction": {
+      "company": "Microsoft",
+      "role": null,
+      "year": 2025,
+      "outcome": "rejected"
+    },
+    "raw_model_output": "{\n  \"company\": \"Microsoft\",\n  \"role\": null,\n  \"year\": 2025,\n  \"outcome\": \"rejected\"\n}"
+  },
+  {
+    "raw_report_id": 10,
+    "source_url": "https://www.reddit.com/r/cscareerquestions/comments/1piop5p/tough_amazon_oa/",
+    "extraction": {
+      "company": "Amazon",
+      "role": null,
+      "year": null,
+      "outcome": "unknown"
+    },
+    "raw_model_output": "{\"company\": \"Amazon\", \"role\": null, \"year\": null, \"outcome\": \"unknown\"}"
+  },
+  {
+    "raw_report_id": 11,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1s9z862/amazon_sde1_interview_experience_india_2026_oa_3/",
+    "extraction": {
+      "company": "Amazon",
+      "role": "SDE-1",
+      "year": 2026,
+      "outcome": "selected"
+    },
+    "raw_model_output": "{\n  \"company\": \"Amazon\",\n  \"role\": \"SDE-1\",\n  \"year\": 2026,\n  \"outcome\": \"selected\"\n}"
+  },
+  {
+    "raw_report_id": 12,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1omwy0m/meta_final_loop_interview_swe_intern_summer_2026/",
+    "extraction": {
+      "company": "Meta",
+      "role": "SWE Intern",
+      "year": 2026,
+      "outcome": "unknown"
+    },
+    "raw_model_output": "{\"company\": \"Meta\", \"role\": \"SWE Intern\", \"year\": 2026, \"outcome\": \"unknown\"}"
+  },
+  {
+    "raw_report_id": 13,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1ny1kdq/goldman_sachs_oa_is_hell/",
+    "extraction": {
+      "company": "Goldman Sachs",
+      "role": "quant",
+      "year": null,
+      "outcome": "unknown"
+    },
+    "raw_model_output": "{\n  \"company\": \"Goldman Sachs\",\n  \"role\": \"quant\",\n  \"year\": null,\n  \"outcome\": \"unknown\"\n}"
+  },
+  {
+    "raw_report_id": 14,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1qn98jk/microsoft_sde2_full_loop_positive_feedback_but_no/",
+    "extraction": {
+      "company": "Microsoft",
+      "role": "SDE 2",
+      "year": null,
+      "outcome": "unknown"
+    },
+    "raw_model_output": "{\n  \"company\": \"Microsoft\",\n  \"role\": \"SDE 2\",\n  \"year\": null,\n  \"outcome\": \"unknown\"\n}"
+  },
+  {
+    "raw_report_id": 15,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1pq0d8p/my_big_tech_internship_interview_exp_and_vibe/",
+    "extraction": {
+      "company": null,
+      "role": "intern",
+      "year": null,
+      "outcome": "unknown"
+    },
+    "raw_model_output": "{\n  \"company\": null,\n  \"role\": \"intern\",\n  \"year\": null,\n  \"outcome\": \"unknown\"\n}"
+  },
+  {
+    "raw_report_id": 16,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1pr0zz3/horrible_interview_experience/",
+    "extraction": {
+      "company": null,
+      "role": "swe internship",
+      "year": null,
+      "outcome": "rejected"
+    },
+    "raw_model_output": "{\"company\": null, \"role\": \"swe internship\", \"year\": null, \"outcome\": \"rejected\"}"
+  },
+  {
+    "raw_report_id": 17,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1nq4oyn/first_internship_interview_and_i_was_given_an/",
+    "extraction": {
+      "company": null,
+      "role": "Software Developer 6 month internship position",
+      "year": null,
+      "outcome": "selected"
+    },
+    "raw_model_output": "{\n  \"company\": null,\n  \"role\": \"Software Developer 6 month internship position\",\n  \"year\": null,\n  \"outcome\": \"selected\"\n}"
+  },
+  {
+    "raw_report_id": 18,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1b9dcte/first_ever_internship_interview_experience/",
+    "extraction": {
+      "company": null,
+      "role": "SWE internship",
+      "year": null,
+      "outcome": "unknown"
+    },
+    "raw_model_output": "{\"company\": null, \"role\": \"SWE internship\", \"year\": null, \"outcome\": \"unknown\"}"
+  },
+  {
+    "raw_report_id": 19,
+    "source_url": "https://www.reddit.com/r/csMajors/comments/sovvjn/two_dream_offers_interview_experience/",
+    "extraction": {
+      "company": "Palantir",
+      "role": "swe intern",
+      "year": null,
+      "outcome": "selected"
+    },
+    "raw_model_output": "{\n  \"company\": \"Palantir\",\n  \"role\": \"swe intern\",\n  \"year\": null,\n  \"outcome\": \"selected\"\n}"
+  }
+]
