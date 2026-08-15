@@ -1,0 +1,453 @@
+[
+  {
+    "raw_report_id": 5,
+    "source": "reddit",
+    "source_url": "http://reddit.com/r/csMajors/comments/1l6p2e7/google_interview_experience_swe/",
+    "extraction": {
+      "company": "Google",
+      "role": "SWE New Grad",
+      "year": 2024,
+      "outcome": "selected",
+      "rounds": [
+        {
+          "type": [
+            "Behavioral"
+          ],
+          "topics": [
+            "behavioral questions"
+          ],
+          "difficulty": null
+        },
+        {
+          "type": [
+            "Coding",
+            "DP"
+          ],
+          "topics": [
+            "dynamic programming"
+          ],
+          "difficulty": null
+        },
+        {
+          "type": [
+            "Coding",
+            "Backtracking"
+          ],
+          "topics": [
+            "backtracking"
+          ],
+          "difficulty": "Hard"
+        },
+        {
+          "type": [
+            "Coding",
+            "Hashmap",
+            "Heaps"
+          ],
+          "topics": [
+            "hashmap",
+            "heaps"
+          ],
+          "difficulty": "Medium"
+        }
+      ],
+      "tone": "mixed"
+    },
+    "raw_model_output": "{\"company\":\"Google\",\"role\":\"SWE New Grad\",\"year\":2024,\"outcome\":\"selected\",\"rounds\":[{\"type\":[\"Behavioral\"],\"topics\":[\"behavioral questions\"],\"difficulty\":null},{\"type\":[\"Coding\",\"DP\"],\"topics\":[\"dynamic programming\"],\"difficulty\":null},{\"type\":[\"Coding\",\"Backtracking\"],\"topics\":[\"backtracking\"],\"difficulty\":\"Hard\"},{\"type\":[\"Coding\",\"Hashmap\",\"Heaps\"],\"topics\":[\"hashmap\",\"heaps\"],\"difficulty\":\"Medium\"}],\"tone\":\"mixed\"}"
+  },
+  {
+    "raw_report_id": 6,
+    "source": "reddit",
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1qu773e/google_interview_experience/",
+    "extraction": {
+      "company": "Google",
+      "role": null,
+      "year": null,
+      "outcome": "unknown",
+      "rounds": [
+        {
+          "type": [
+            "Behavioral"
+          ],
+          "topics": [],
+          "difficulty": null
+        },
+        {
+          "type": [
+            "Coding",
+            "OOD"
+          ],
+          "topics": [
+            "time complexity",
+            "optimization",
+            "follow-up question"
+          ],
+          "difficulty": "Medium"
+        },
+        {
+          "type": [
+            "Coding",
+            "OOD"
+          ],
+          "topics": [
+            "edge cases",
+            "mistakes",
+            "hinting"
+          ],
+          "difficulty": null
+        },
+        {
+          "type": [
+            "Coding",
+            "Graph",
+            "Recursion"
+          ],
+          "topics": [
+            "graph",
+            "recursion",
+            "edge cases"
+          ],
+          "difficulty": "Medium"
+        }
+      ],
+      "tone": null
+    },
+    "raw_model_output": "{\"company\":\"Google\",\"role\":null,\"year\":null,\"outcome\":\"unknown\",\"rounds\":[{\"type\":[\"Behavioral\"],\"topics\":[],\"difficulty\":null},{\"type\":[\"Coding\",\"OOD\"],\"topics\":[\"time complexity\",\"optimization\",\"follow-up question\"],\"difficulty\":\"Medium\"},{\"type\":[\"Coding\",\"OOD\"],\"topics\":[\"edge cases\",\"mistakes\",\"hinting\"],\"difficulty\":null},{\"type\":[\"Coding\",\"Graph\",\"Recursion\"],\"topics\":[\"graph\",\"recursion\",\"edge cases\"],\"difficulty\":\"Medium\"}],\"tone\":null}"
+  },
+  {
+    "raw_report_id": 7,
+    "source": "reddit",
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1t6j3rr/google_early_career_round_2_onsite_interview/",
+    "extraction": {
+      "company": "Google",
+      "role": "Early Career Campus role",
+      "year": null,
+      "outcome": "unknown",
+      "rounds": [
+        {
+          "type": [
+            "Coding",
+            "Algorithm"
+          ],
+          "topics": [
+            "data structure",
+            "algorithm",
+            "bugs"
+          ],
+          "difficulty": null
+        },
+        {
+          "type": [
+            "Coding",
+            "Algorithm"
+          ],
+          "topics": [
+            "loop",
+            "bug"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "friendly and enthusiastic"
+    },
+    "raw_model_output": "{\"company\":\"Google\",\"role\":\"Early Career Campus role\",\"year\":null,\"outcome\":\"unknown\",\"rounds\":[{\"type\":[\"Coding\",\"Algorithm\"],\"topics\":[\"data structure\",\"algorithm\",\"bugs\"],\"difficulty\":null},{\"type\":[\"Coding\",\"Algorithm\"],\"topics\":[\"loop\",\"bug\"],\"difficulty\":null}],\"tone\":\"friendly and enthusiastic\"}"
+  },
+  {
+    "raw_report_id": 8,
+    "source": "reddit",
+    "source_url": "https://www.reddit.com/r/csMajors/comments/1uksrin/i_need_advice_on_my_google_intern_interview/",
+    "extraction": {
+      "company": "Google",
+      "role": "Intern",
+      "year": null,
+      "outcome": "unknown",
+      "rounds": [
+        {
+          "type": [
+            "Coding"
+          ],
+          "topics": [
+            "problem solving",
+            "time complexity",
+            "space complexity",
+            "language syntax"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "introverted but patient"
+    },
+    "raw_model_output": "{\"company\":\"Google\",\"role\":\"Intern\",\"year\":null,\"outcome\":\"unknown\",\"rounds\":[{\"type\":[\"Coding\"],\"topics\":[\"problem solving\",\"time complexity\",\"space complexity\",\"language syntax\"],\"difficulty\":null}],\"tone\":\"introverted but patient\"}"
+  },
+  {
+    "raw_report_id": 20,
+    "source": "medium",
+    "source_url": "https://medium.com/@sumitpardhiya/google-interview-experience-sde-1-6648c12c1658",
+    "extraction": {
+      "company": "Google",
+      "role": "software engineering role",
+      "year": null,
+      "outcome": "rejected",
+      "rounds": [
+        {
+          "type": [
+            "Initial Discussion",
+            "Phone"
+          ],
+          "topics": [
+            "background",
+            "soft skills",
+            "projects",
+            "current role",
+            "salary expectations",
+            "basic fit"
+          ],
+          "difficulty": null
+        },
+        {
+          "type": [
+            "Phone",
+            "Coding"
+          ],
+          "topics": [
+            "trees",
+            "edge cases",
+            "whiteboard coding",
+            "complexity analysis"
+          ],
+          "difficulty": "Medium"
+        },
+        {
+          "type": [
+            "Onsite",
+            "Coding"
+          ],
+          "topics": [
+            "directory structure creation",
+            "design",
+            "edge cases"
+          ],
+          "difficulty": "Medium"
+        },
+        {
+          "type": [
+            "Onsite",
+            "Coding"
+          ],
+          "topics": [
+            "graph problem"
+          ],
+          "difficulty": "Hard"
+        },
+        {
+          "type": [
+            "Onsite",
+            "Coding"
+          ],
+          "topics": [
+            "string problem"
+          ],
+          "difficulty": "Hard"
+        }
+      ],
+      "tone": "Structured and professional"
+    },
+    "raw_model_output": "{\"company\":\"Google\",\"role\":\"software engineering role\",\"year\":null,\"outcome\":\"rejected\",\"rounds\":[{\"type\":[\"Initial Discussion\",\"Phone\"],\"topics\":[\"background\",\"soft skills\",\"projects\",\"current role\",\"salary expectations\",\"basic fit\"],\"difficulty\":null},{\"type\":[\"Phone\",\"Coding\"],\"topics\":[\"trees\",\"edge cases\",\"whiteboard coding\",\"complexity analysis\"],\"difficulty\":\"Medium\"},{\"type\":[\"Onsite\",\"Coding\"],\"topics\":[\"directory structure creation\",\"design\",\"edge cases\"],\"difficulty\":\"Medium\"},{\"type\":[\"Onsite\",\"Coding\"],\"topics\":[\"graph problem\"],\"difficulty\":\"Hard\"},{\"type\":[\"Onsite\",\"Coding\"],\"topics\":[\"string problem\"],\"difficulty\":\"Hard\"}],\"tone\":\"Structured and professional\"}"
+  },
+  {
+    "raw_report_id": 21,
+    "source": "medium",
+    "source_url": "https://medium.com/@shreyagupta_17295/google-interview-experience-l4-c5908bde5aa0",
+    "extraction": {
+      "company": "Google",
+      "role": "SWE-III",
+      "year": 2023,
+      "outcome": "selected",
+      "rounds": [
+        {
+          "type": [
+            "Phone Screening"
+          ],
+          "topics": [
+            "Data Structures and Algorithms (DSA)"
+          ],
+          "difficulty": null
+        },
+        {
+          "type": [
+            "Coding"
+          ],
+          "topics": [
+            "Dynamic programming",
+            "2-D Array"
+          ],
+          "difficulty": "Medium"
+        },
+        {
+          "type": [
+            "Coding"
+          ],
+          "topics": [
+            "Trees",
+            "Depth First Search",
+            "Dynamic programming"
+          ],
+          "difficulty": "Hard"
+        },
+        {
+          "type": [
+            "Coding"
+          ],
+          "topics": [
+            "Dynamic Programming",
+            "Heap (Priority Queue)",
+            "Array"
+          ],
+          "difficulty": "Hard"
+        },
+        {
+          "type": [
+            "Behavioral",
+            "Values"
+          ],
+          "topics": [
+            "Conflict management",
+            "Teamwork",
+            "Problem-solving approach"
+          ],
+          "difficulty": null
+        },
+        {
+          "type": [
+            "Team Matching",
+            "Culture"
+          ],
+          "topics": [
+            "Team culture",
+            "Work experience",
+            "Career goals"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "positive"
+    },
+    "raw_model_output": "{\"company\":\"Google\",\"role\":\"SWE-III\",\"year\":2023,\"outcome\":\"selected\",\"rounds\":[{\"type\":[\"Phone Screening\"],\"topics\":[\"Data Structures and Algorithms (DSA)\"],\"difficulty\":null},{\"type\":[\"Coding\"],\"topics\":[\"Dynamic programming\",\"2-D Array\"],\"difficulty\":\"Medium\"},{\"type\":[\"Coding\"],\"topics\":[\"Trees\",\"Depth First Search\",\"Dynamic programming\"],\"difficulty\":\"Hard\"},{\"type\":[\"Coding\"],\"topics\":[\"Dynamic Programming\",\"Heap (Priority Queue)\",\"Array\"],\"difficulty\":\"Hard\"},{\"type\":[\"Behavioral\",\"Values\"],\"topics\":[\"Conflict management\",\"Teamwork\",\"Problem-solving approach\"],\"difficulty\":null},{\"type\":[\"Team Matching\",\"Culture\"],\"topics\":[\"Team culture\",\"Work experience\",\"Career goals\"],\"difficulty\":null}],\"tone\":\"positive\"}"
+  },
+  {
+    "raw_report_id": 22,
+    "source": "medium",
+    "source_url": "https://ellieshim.medium.com/my-virtual-onsite-interview-experience-with-google-2022-eb0a57e859c3",
+    "extraction": {
+      "company": "Google",
+      "role": "strategy",
+      "year": null,
+      "outcome": "unknown",
+      "rounds": [
+        {
+          "type": [
+            "Phone",
+            "Behavioral"
+          ],
+          "topics": [],
+          "difficulty": null
+        },
+        {
+          "type": [
+            "Onsite",
+            "Behavioral"
+          ],
+          "topics": [],
+          "difficulty": null
+        }
+      ],
+      "tone": "structured"
+    },
+    "raw_model_output": "{\"company\":\"Google\",\"role\":\"strategy\",\"year\":null,\"outcome\":\"unknown\",\"rounds\":[{\"type\":[\"Phone\",\"Behavioral\"],\"topics\":[],\"difficulty\":null},{\"type\":[\"Onsite\",\"Behavioral\"],\"topics\":[],\"difficulty\":null}],\"tone\":\"structured\"}"
+  },
+  {
+    "raw_report_id": 46,
+    "source": "form",
+    "source_url": "form://response/0",
+    "extraction": {
+      "company": "Maxopp Global",
+      "role": "Software Developer",
+      "year": 2026,
+      "outcome": "rejected",
+      "rounds": [
+        {
+          "type": [
+            "DSA",
+            "Coding",
+            "Behavioral"
+          ],
+          "topics": [
+            "android development tools",
+            "react native fundamentals",
+            "native vs js bundles",
+            "2-D dynamic programming"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Friendly and warm"
+    },
+    "raw_model_output": "{\"company\":\"Maxopp Global\",\"role\":\"Software Developer\",\"year\":2026,\"outcome\":\"rejected\",\"rounds\":[{\"type\":[\"DSA\",\"Coding\",\"Behavioral\"],\"topics\":[\"android development tools\",\"react native fundamentals\",\"native vs js bundles\",\"2-D dynamic programming\"],\"difficulty\":null}],\"tone\":\"Friendly and warm\"}"
+  },
+  {
+    "raw_report_id": 47,
+    "source": "form",
+    "source_url": "form://response/1",
+    "extraction": {
+      "company": "Salesforce",
+      "role": "Sde",
+      "year": 2024,
+      "outcome": "unknown",
+      "rounds": [
+        {
+          "type": [
+            "DSA",
+            "Coding",
+            "System Design",
+            "Behavioral"
+          ],
+          "topics": [
+            "Sql",
+            "dsa",
+            "os"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Friendly and warm"
+    },
+    "raw_model_output": "{\"company\":\"Salesforce\",\"role\":\"Sde\",\"year\":2024,\"outcome\":\"unknown\",\"rounds\":[{\"type\":[\"DSA\",\"Coding\",\"System Design\",\"Behavioral\"],\"topics\":[\"Sql\",\"dsa\",\"os\"],\"difficulty\":null}],\"tone\":\"Friendly and warm\"}"
+  },
+  {
+    "raw_report_id": 48,
+    "source": "form",
+    "source_url": "form://response/2",
+    "extraction": {
+      "company": "Barclays",
+      "role": "Technology Developer Intern",
+      "year": 2023,
+      "outcome": "unknown",
+      "rounds": [
+        {
+          "type": [
+            "DSA",
+            "Behavioral"
+          ],
+          "topics": [
+            "DSA",
+            "projects build",
+            "Teamwork"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Relaxed and friendly"
+    },
+    "raw_model_output": "{\"company\":\"Barclays\",\"role\":\"Technology Developer Intern\",\"year\":2023,\"outcome\":\"unknown\",\"rounds\":[{\"type\":[\"DSA\",\"Behavioral\"],\"topics\":[\"DSA\",\"projects build\",\"Teamwork\"],\"difficulty\":null}],\"tone\":\"Relaxed and friendly\"}"
+  }
+]
