@@ -1,0 +1,241 @@
+[
+  {
+    "raw_report_id": 46,
+    "source_url": "form://response/0",
+    "extraction": {
+      "rounds": [
+        {
+          "type": [
+            "DSA",
+            "Coding",
+            "Behavioral"
+          ],
+          "topics": [
+            "android development tools",
+            "react native fundamentals",
+            "native android vs js bundles",
+            "2-D dynamic programming"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Friendly and warm"
+    },
+    "raw_model_output": "{\"rounds\":[{\"type\":[\"DSA\",\"Coding\",\"Behavioral\"],\"topics\":[\"android development tools\",\"react native fundamentals\",\"native android vs js bundles\",\"2-D dynamic programming\"],\"difficulty\":null}],\"tone\":\"Friendly and warm\"}",
+    "_raw_text_for_eval": "Company: Maxopp Global\nRole: Software Developer\nWhich round was this?: Technical Round 1\nInterview mode: In-person\nRoughly how long did it last?: 45-60 min\nWhat questions were asked? (as close to exact as you remember): Some questions were related to android development tools(adb, android sdks, java vs kotlin), react native fundamentals, difference between native android and js bundles.  Most of the time was given to dsa questions from 2-D dp. \nWhat kind of round was it?: DSA, Coding, Behavioral\nHow much freedom did you have in your approach?: Got some hints along the way\nWhen you got stuck, what did the interviewer do?: Helped me get unstuck\nDid they probe deeper with follow-up questions?: Asked a few\nOverall pace of the interview: Moderate\nInterviewer's general vibe: Friendly and warm\nDid you clear this round?: No\nRoughly when did this interview happen?: 25th April 2026\nAnything you'd prepare differently in hindsight?: Probably going low level in coding will help rather than gaining breadth by studying multiple concepts if the job role is specialized."
+  },
+  {
+    "raw_report_id": 47,
+    "source_url": "form://response/1",
+    "extraction": {
+      "rounds": [
+        {
+          "type": [
+            "DSA",
+            "Coding",
+            "System Design",
+            "Behavioral"
+          ],
+          "topics": [
+            "SQL",
+            "DSA",
+            "OS"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Friendly and warm"
+    },
+    "raw_model_output": "{\"rounds\":[{\"type\":[\"DSA\",\"Coding\",\"System Design\",\"Behavioral\"],\"topics\":[\"SQL\",\"DSA\",\"OS\"],\"difficulty\":null}],\"tone\":\"Friendly and warm\"}",
+    "_raw_text_for_eval": "Company: Salesforce\nRole: Sde\nWhich round was this?: Technical Round 1\nInterview mode: Video call\nRoughly how long did it last?: 30\u201345 min\nWhat questions were asked? (as close to exact as you remember): Sql, dsa, os etc\nWhat kind of round was it?: DSA, Coding, System Design, Behavioral\nHow much freedom did you have in your approach?: I picked my own approach freely\nWhen you got stuck, what did the interviewer do?: Stayed silent, let me work through it\nDid they probe deeper with follow-up questions?: Yes, dug deep into my reasoning\nOverall pace of the interview: Relaxed\nInterviewer's general vibe: Friendly and warm\nDid you clear this round?: Yes\nRoughly when did this interview happen?: 2024"
+  },
+  {
+    "raw_report_id": 48,
+    "source_url": "form://response/2",
+    "extraction": {
+      "rounds": [
+        {
+          "type": [
+            "Coding",
+            "Behavioral"
+          ],
+          "topics": [
+            "DSA",
+            "project building",
+            "teamwork"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Friendly and warm"
+    },
+    "raw_model_output": "{\"rounds\":[{\"type\":[\"Coding\",\"Behavioral\"],\"topics\":[\"DSA\",\"project building\",\"teamwork\"],\"difficulty\":null}],\"tone\":\"Friendly and warm\"}",
+    "_raw_text_for_eval": "Company: Barclays\nRole: Technology Developer Intern\nWhich round was this?: Technical Round 1\nInterview mode: Video call\nRoughly how long did it last?: 45-60 min\nWhat questions were asked? (as close to exact as you remember): Questions related to DSA, projects build and about Teamwork \nWhat kind of round was it?: DSA, Behavioral\nHow much freedom did you have in your approach?: I picked my own approach freely\nWhen you got stuck, what did the interviewer do?: Helped me get unstuck\nDid they probe deeper with follow-up questions?: Asked a few\nOverall pace of the interview: Relaxed\nInterviewer's general vibe: Friendly and warm\nDid you clear this round?: Yes\nRoughly when did this interview happen?: 2023"
+  },
+  {
+    "raw_report_id": 49,
+    "source_url": "form://response/3",
+    "extraction": {
+      "rounds": [
+        {
+          "type": [
+            "Coding",
+            "System Design",
+            "DSA"
+          ],
+          "topics": [],
+          "difficulty": null
+        }
+      ],
+      "tone": "Neutral and professional"
+    },
+    "raw_model_output": "{\"rounds\":[{\"type\":[\"Coding\",\"System Design\",\"DSA\"],\"topics\":[],\"difficulty\":null}],\"tone\":\"Neutral and professional\"}",
+    "_raw_text_for_eval": "Company: Kotak\nRole: SDE-1\nWhich round was this?: Technical Round 1\nInterview mode: Video call\nRoughly how long did it last?: 45-60 min\nWhat questions were asked? (as close to exact as you remember): DSA, system design \nWhat kind of round was it?: DSA, Coding, System Design\nHow much freedom did you have in your approach?: Got some hints along the way\nWhen you got stuck, what did the interviewer do?: Helped me get unstuck\nDid they probe deeper with follow-up questions?: Yes, dug deep into my reasoning\nOverall pace of the interview: Moderate\nInterviewer's general vibe: Neutral and professional\nDid you clear this round?: Yes\nRoughly when did this interview happen?: June 2026"
+  },
+  {
+    "raw_report_id": 50,
+    "source_url": "form://response/4",
+    "extraction": {
+      "rounds": [
+        {
+          "type": [
+            "Bar Raiser",
+            "System Design",
+            "Behavioral"
+          ],
+          "topics": [
+            "Thinking",
+            "Use of AI",
+            "About current work and responsibilities"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Friendly and warm"
+    },
+    "raw_model_output": "{\"rounds\":[{\"type\":[\"Bar Raiser\",\"System Design\",\"Behavioral\"],\"topics\":[\"Thinking\",\"Use of AI\",\"About current work and responsibilities\"],\"difficulty\":null}],\"tone\":\"Friendly and warm\"}",
+    "_raw_text_for_eval": "Company: Paypal\nRole: SDE-1 Python & Java\nWhich round was this?: Bar Raiser\nInterview mode: Video call\nRoughly how long did it last?: Over 60 min\nWhat questions were asked? (as close to exact as you remember): Thinking, Use of AI, About current work and responsibilities \nWhat kind of round was it?: System Design, Behavioral\nHow much freedom did you have in your approach?: Got some hints along the way\nWhen you got stuck, what did the interviewer do?: Helped me get unstuck\nDid they probe deeper with follow-up questions?: Yes, dug deep into my reasoning\nOverall pace of the interview: Moderate\nInterviewer's general vibe: Friendly and warm\nDid you clear this round?: Yes\nRoughly when did this interview happen?: Feb 2026"
+  },
+  {
+    "raw_report_id": 51,
+    "source_url": "form://response/5",
+    "extraction": {
+      "rounds": [
+        {
+          "type": [
+            "System Design",
+            "Behavioral",
+            "Case Study"
+          ],
+          "topics": [
+            "data analysis",
+            "business planning",
+            "process optimization",
+            "client and stakeholder management",
+            "market trend analysis",
+            "biggest achievement",
+            "current/expected CTC",
+            "notice period"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Neutral and professional"
+    },
+    "raw_model_output": "{\"rounds\":[{\"type\":[\"System Design\",\"Behavioral\",\"Case Study\"],\"topics\":[\"data analysis\",\"business planning\",\"process optimization\",\"client and stakeholder management\",\"market trend analysis\",\"biggest achievement\",\"current/expected CTC\",\"notice period\"],\"difficulty\":null}],\"tone\":\"Neutral and professional\"}",
+    "_raw_text_for_eval": "Company: Square Yards\nRole: Manager\nWhich round was this?: Hiring Manager\nInterview mode: Video call\nRoughly how long did it last?: 30\u201345 min\nWhat questions were asked? (as close to exact as you remember): Tell me about yourself, data analysis, business planning, process optimization, client and stakeholder management, market trend analysis, biggest achievement, why Square Yards, current/expected CTC, and notice period.\nWhat kind of round was it?: System Design, Behavioral, Case Study\nHow much freedom did you have in your approach?: I picked my own approach freely\nWhen you got stuck, what did the interviewer do?: I didn't get stuck\nDid they probe deeper with follow-up questions?: Asked a few\nOverall pace of the interview: Moderate\nInterviewer's general vibe: Neutral and professional\nDid you clear this round?: Yes\nRoughly when did this interview happen?: February 2025\nAnything you'd prepare differently in hindsight?: I'd prepare more examples from past projects and revise key business scenarios."
+  },
+  {
+    "raw_report_id": 52,
+    "source_url": "form://response/6",
+    "extraction": {
+      "rounds": [
+        {
+          "type": [
+            "Behavioral",
+            "Case Study",
+            "Project discussion"
+          ],
+          "topics": [
+            "Leadership Principles",
+            "subjects",
+            "projects"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Friendly and warm"
+    },
+    "raw_model_output": "{\"rounds\":[{\"type\":[\"Behavioral\",\"Case Study\",\"Project discussion\"],\"topics\":[\"Leadership Principles\",\"subjects\",\"projects\"],\"difficulty\":null}],\"tone\":\"Friendly and warm\"}",
+    "_raw_text_for_eval": "Company: Amazon\nRole: SDE\nWhich round was this?: Bar Raiser\nInterview mode: Video call\nRoughly how long did it last?: Over 60 min\nWhat questions were asked? (as close to exact as you remember): LPs, subjects, deep dive into projects\nWhat kind of round was it?: Behavioral, Case Study, Project discussion\nHow much freedom did you have in your approach?: I picked my own approach freely\nWhen you got stuck, what did the interviewer do?: I didn't get stuck\nDid they probe deeper with follow-up questions?: Yes, dug deep into my reasoning\nOverall pace of the interview: Relaxed\nInterviewer's general vibe: Friendly and warm\nDid you clear this round?: Yes\nRoughly when did this interview happen?: 10 months ago"
+  },
+  {
+    "raw_report_id": 53,
+    "source_url": "form://response/7",
+    "extraction": {
+      "rounds": [
+        {
+          "type": [
+            "Coding"
+          ],
+          "topics": [
+            "Dutch National Flag Algorithm",
+            "Reverse a LinkedList",
+            "Find middle node of the linkedlist",
+            "Palindrome valid in a linkedlist"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Friendly and warm"
+    },
+    "raw_model_output": "{\"rounds\":[{\"type\":[\"Coding\"],\"topics\":[\"Dutch National Flag Algorithm\",\"Reverse a LinkedList\",\"Find middle node of the linkedlist\",\"Palindrome valid in a linkedlist\"],\"difficulty\":null}],\"tone\":\"Friendly and warm\"}",
+    "_raw_text_for_eval": "Company: Nagarro\nRole: Associate Software Trainee\nWhich round was this?: Technical Round 1\nInterview mode: Video call\nRoughly how long did it last?: Under 30 min\nWhat questions were asked? (as close to exact as you remember): Dutch National Flag Algorithm\nReverse a LinkedList\nFind middle node of the linkedlist\nPalindrome valid in a linkedlist\nWhat kind of round was it?: DSA\nHow much freedom did you have in your approach?: I picked my own approach freely\nWhen you got stuck, what did the interviewer do?: Helped me get unstuck\nDid they probe deeper with follow-up questions?: Asked a few\nOverall pace of the interview: Relaxed\nInterviewer's general vibe: Friendly and warm\nDid you clear this round?: Yes\nRoughly when did this interview happen?: April 2026\nAnything you'd prepare differently in hindsight?: DSA alone is sufficient"
+  },
+  {
+    "raw_report_id": 54,
+    "source_url": "form://response/8",
+    "extraction": {
+      "rounds": [
+        {
+          "type": [
+            "Coding"
+          ],
+          "topics": [
+            "SQL"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Neutral and professional"
+    },
+    "raw_model_output": "{\"rounds\":[{\"type\":[\"Coding\"],\"topics\":[\"SQL\"],\"difficulty\":null}],\"tone\":\"Neutral and professional\"}",
+    "_raw_text_for_eval": "Company: IEM\nRole: Tech\nWhich round was this?: Online Assessment (OA)\nInterview mode: In-person\nRoughly how long did it last?: Under 30 min\nWhat questions were asked? (as close to exact as you remember): How to find out today's date using SQL query?\nWhat kind of round was it?: Coding\nHow much freedom did you have in your approach?: Got some hints along the way\nWhen you got stuck, what did the interviewer do?: Helped me get unstuck\nDid they probe deeper with follow-up questions?: Asked a few\nOverall pace of the interview: Moderate\nInterviewer's general vibe: Neutral and professional\nDid you clear this round?: Maybe\nRoughly when did this interview happen?: 2 weeks ago"
+  },
+  {
+    "raw_report_id": 55,
+    "source_url": "form://response/9",
+    "extraction": {
+      "rounds": [
+        {
+          "type": [
+            "HR",
+            "Behavioral",
+            "Technical"
+          ],
+          "topics": [
+            "DSA",
+            "database",
+            "GitHub",
+            "SQL",
+            "behavioral"
+          ],
+          "difficulty": null
+        }
+      ],
+      "tone": "Friendly and warm"
+    },
+    "raw_model_output": "{\"rounds\":[{\"type\":[\"HR\",\"Behavioral\",\"Technical\"],\"topics\":[\"DSA\",\"database\",\"GitHub\",\"SQL\",\"behavioral\"],\"difficulty\":null}],\"tone\":\"Friendly and warm\"}",
+    "_raw_text_for_eval": "Company: TCS\nRole: Graduate trainee\nWhich round was this?: HR\nInterview mode: In-person\nRoughly how long did it last?: Under 30 min\nWhat questions were asked? (as close to exact as you remember): The questions were mostly from my resume . And in technical aspect I would say that they asked me some dsa related question , database , Github , Sql , and some behavioural questions\nWhat kind of round was it?: This interview was combined with all the aspect\nHow much freedom did you have in your approach?: Got some hints along the way\nWhen you got stuck, what did the interviewer do?: I didn't get stuck\nDid they probe deeper with follow-up questions?: Yes, dug deep into my reasoning\nOverall pace of the interview: Relaxed\nInterviewer's general vibe: Friendly and warm\nDid you clear this round?: Yes\nRoughly when did this interview happen?: Around march 2026\nAnything you'd prepare differently in hindsight?: Consistently revising my fundamentals"
+  }
+]
