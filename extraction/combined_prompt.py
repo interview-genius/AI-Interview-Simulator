@@ -103,6 +103,9 @@ def call_groq(raw_text: str) -> str:
         model=GROQ_MODEL,
         messages=[{"role": "user", "content": prompt}],
         temperature=0,
+        max_tokens=4096,  # long reports (many rounds) were getting cut off
+                          # before the model could finish the JSON, causing
+                          # schema validation to fail on an incomplete object
         response_format={
             "type": "json_schema",
             "json_schema": {
