@@ -74,7 +74,13 @@ def main():
         print(f"Query: {q!r}")
         results = similarity_search(q)
         for r in results:
-            print(f"  id={r['id']}  {r['company']} / {r['role']}  distance={r['distance']:.4f}")
+            print(
+    f"  id={r['id']}  "
+    f"{r['company']} / {r['role']}  "
+    f"tone={r['tone']}  "
+    f"outcome={r['outcome']}  "
+    f"distance={r['distance']:.4f}"
+)
         print()
 
 
