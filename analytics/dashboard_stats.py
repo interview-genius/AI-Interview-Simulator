@@ -28,6 +28,8 @@ import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
 
+from analytics.topic_search import TOPIC_ALIASES
+
 load_dotenv()
 
 DB_URL = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
@@ -39,8 +41,23 @@ def _connect():
     return psycopg2.connect(DB_URL, cursor_factory=psycopg2.extras.RealDictCursor)
 
 
+# Reverse lookup built from Person A's alias groups (topic_search.py), so
+# "algorithm"/"algorithms"/"Algorithm" etc. collapse into one canonical
+# count instead of fragmenting across raw-string variants.
+_VARIANT_TO_CANONICAL = {}
+for _canonical, _variants in TOPIC_ALIASES.items():
+    _VARIANT_TO_CANONICAL[_canonical.lower()] = _canonical
+    for _variant in _variants:
+        _VARIANT_TO_CANONICAL[_variant.lower()] = _canonical
+
+
+def _canonicalize_topic(topic: str) -> str:
+    return _VARIANT_TO_CANONICAL.get(topic.lower(), topic)
+
+
 def company_topic_frequency(company: str, limit: int = 15) -> list[dict]:
-    """Topic frequency across all rounds of all reports for one company."""
+    """Topic frequency across all rounds of all reports for one company,
+    with topic variants canonicalized via topic_search.TOPIC_ALIASES."""
     query = """
         SELECT topic, COUNT(*) AS frequency
         FROM structured_reports sr,
@@ -48,13 +65,19 @@ def company_topic_frequency(company: str, limit: int = 15) -> list[dict]:
              jsonb_array_elements_text(round_elem->'topics') AS topic
         WHERE sr.company ILIKE %(company)s
         GROUP BY topic
-        ORDER BY frequency DESC
-        LIMIT %(limit)s
     """
     with _connect() as conn:
         with conn.cursor() as cur:
-            cur.execute(query, {"company": f"%{company}%", "limit": limit})
-            return cur.fetchall()
+            cur.execute(query, {"company": f"%{company}%"})
+            raw_rows = cur.fetchall()
+
+    canonical_counts: dict[str, int] = {}
+    for row in raw_rows:
+        canonical = _canonicalize_topic(row["topic"])
+        canonical_counts[canonical] = canonical_counts.get(canonical, 0) + row["frequency"]
+
+    sorted_counts = sorted(canonical_counts.items(), key=lambda kv: kv[1], reverse=True)
+    return [{"topic": topic, "frequency": freq} for topic, freq in sorted_counts[:limit]]
 
 
 def round_count_distribution() -> list[dict]:
