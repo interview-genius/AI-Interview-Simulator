@@ -8,13 +8,18 @@ same version already pinned in requirements.txt. No other web framework
 exists anywhere else in this repo, so this is the first and sets the
 convention for Steps 8/9/10's endpoints too.
 
-Run with: uvicorn resume_intelligence.api:app --reload
+APIRouter, not its own FastAPI() app -- Step 8 needs interview endpoints
+living in the same process (one CORS config, one port) rather than a
+second server. The single real FastAPI() instance lives in app.py at the
+repo root and mounts this router alongside interview_engine/api.py's.
+
+Run with: uvicorn app:app --reload (from the repo root)
 """
 
 import os
 import tempfile
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 import psycopg2
 from dotenv import load_dotenv
@@ -27,10 +32,10 @@ DB_URL = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
 if not DB_URL:
     raise ValueError("Neither SUPABASE_DB_URL nor DATABASE_URL found in .env")
 
-app = FastAPI(title="Interview Simulator -- Resume Intelligence")
+router = APIRouter()
 
 
-@app.post("/resumes/upload")
+@router.post("/resumes/upload")
 async def upload_resume(file: UploadFile = File(...)):
     if file.content_type != "application/pdf" and not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
