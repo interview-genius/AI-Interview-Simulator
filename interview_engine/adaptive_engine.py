@@ -171,21 +171,29 @@ def call_llm_json(system_prompt: str, user_prompt: str, max_retries: int = 3) ->
             from groq import Groq
             client = Groq(api_key=groq_key)
             model = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
-            res = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=0.3,
-                max_tokens=1024,
-            )
-            content = res.choices[0].message.content or ""
-            match = re.search(r"\{.*\}", content, re.DOTALL)
-            if match:
-                return json.loads(match.group(0))
+            for attempt in range(max_retries):
+                try:
+                    res = client.chat.completions.create(
+                        model=model,
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt},
+                        ],
+                        temperature=0.3,
+                        max_tokens=1024,
+                    )
+                    content = res.choices[0].message.content or ""
+                    match = re.search(r"\{.*\}", content, re.DOTALL)
+                    if match:
+                        return json.loads(match.group(0))
+                except Exception as e:
+                    if "429" in str(e) or "rate_limit" in str(e).lower():
+                        time.sleep(2 * (attempt + 1))
+                        continue
+                    print(f"  [Adaptive Groq error]: {e}")
+                    break
         except Exception as e:
-            print(f"  [Adaptive Groq error]: {e}")
+            print(f"  [Adaptive Groq init error]: {e}")
 
     openrouter_key = os.getenv("OPENROUTER_API_KEY")
     if openrouter_key:

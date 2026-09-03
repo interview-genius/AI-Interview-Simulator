@@ -57,6 +57,7 @@ class TechnicalStartRequest(BaseModel):
 class TechnicalTurnRequest(BaseModel):
     session_id: str
     candidate_answer: str
+    end_interview: bool = False
 
 
 class TechnicalSessionState(BaseModel):
@@ -69,6 +70,7 @@ class TechnicalSessionState(BaseModel):
     phase_index: int = 0
     history: list[dict[str, str]] = Field(default_factory=list)
     retrieved_report_ids: list[int] = Field(default_factory=list)
+    is_completed: bool = False
 
 
 # In-memory session stores
@@ -163,16 +165,27 @@ def call_llm(system_message: str, turn_history: list[dict], max_retries: int = 3
             client = Groq(api_key=groq_key)
             model = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
             messages = [{"role": "system", "content": system_message}] + turn_history
-            res = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=0.7,
-                max_tokens=1024,
-            )
-            content = res.choices[0].message.content
-            return parse_turn_json(content)
+            for attempt in range(max_retries):
+                try:
+                    res = client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                        temperature=0.7,
+                        max_tokens=2048,
+                    )
+                    content = res.choices[0].message.content or ""
+                    if content:
+                        turn = parse_turn_json(content)
+                        if turn is not None:
+                            return turn
+                except Exception as e:
+                    if "429" in str(e) or "rate_limit" in str(e).lower():
+                        time.sleep(2 * (attempt + 1))
+                        continue
+                    print(f"  [Groq call error, falling back to OpenRouter]: {e}")
+                    break
         except Exception as e:
-            print(f"  [Groq call failed, falling back to OpenRouter]: {e}")
+            print(f"  [Groq init error]: {e}")
 
     # 2. Try OpenRouter via OpenAI client
     openrouter_key = os.getenv("OPENROUTER_API_KEY")
@@ -266,7 +279,7 @@ def parse_turn_json(content: str) -> ConversationTurn | None:
                 interviewer_response=clean_text,
                 cited_report_ids=[],
                 grounded=grounded_match.group(1).lower() == "true" if grounded_match else True,
-                advance_phase=advance_match.group(1).lower() == "true" if advance_match else False,
+                advance_phase=advance_match.group(1).lower() == "true" if advance_phase else False,
             )
 
     # 3. Log a clear error if JSON parsing fails and clean any raw JSON syntax artifacts
@@ -333,7 +346,11 @@ def start_technical_session(
     return session, turn
 
 
-def advance_technical_conversation(session_id: str, candidate_answer: str) -> ConversationTurn | None:
+def advance_technical_conversation(
+    session_id: str,
+    candidate_answer: str,
+    end_interview: bool = False,
+) -> ConversationTurn | None:
     session = SESSIONS.get(session_id)
     if session is None:
         return None
@@ -342,6 +359,8 @@ def advance_technical_conversation(session_id: str, candidate_answer: str) -> Co
     session.history.append({"role": "user", "content": candidate_answer})
 
     active_phase = current_phase(session)
+    is_last_phase = session.phase_index >= len(session.active_phases) - 1
+
     decision = evaluate_and_decide(
         session_id=session_id,
         topic=active_phase,
@@ -349,7 +368,26 @@ def advance_technical_conversation(session_id: str, candidate_answer: str) -> Co
         interview_type="technical",
     )
 
-    if decision.should_interrupt:
+    # Terminal completion detection
+    natural_exhaustion = is_last_phase and decision.next_action in ["new_topic", "wrap_topic"]
+    ceiling_fallback = len(session.history) >= 16  # 8 candidate turns safety net
+    is_completed = bool(natural_exhaustion or end_interview or ceiling_fallback)
+
+    if natural_exhaustion:
+        completion_reason = "Natural Phase Exhaustion"
+    elif end_interview:
+        completion_reason = "Explicit Client End Signal"
+    elif ceiling_fallback:
+        completion_reason = "Safety Turn Ceiling Fallback (8 turns)"
+    else:
+        completion_reason = None
+
+    if is_completed:
+        guidance = (
+            f"WRAP UP AND CONCLUDE: The Technical Discussion interview is now complete (Reason: {completion_reason}). "
+            "Politely thank the candidate, briefly summarize that all topics have been covered, and conclude the interview."
+        )
+    elif decision.should_interrupt:
         guidance = f"INTERRUPT AND REDIRECT: Intervene immediately to address a critical misconception: {decision.reasoning}"
     elif decision.next_action == "follow_up":
         guidance = f"FOLLOW-UP PROBE: Ask a focused probing follow-up on {active_phase} to address gaps or test deeper mechanics (depth={decision.depth_score}/5). Reason: {decision.reasoning}. Do not switch topics."
@@ -372,11 +410,20 @@ def advance_technical_conversation(session_id: str, candidate_answer: str) -> Co
 
     # Advance phase when adaptive engine decides on new_topic / wrap_topic
     advance = decision.next_action in ["new_topic", "wrap_topic"]
-    turn.advance_phase = advance
+    turn.advance_phase = advance or is_completed
+    turn.is_completed = is_completed
 
     session.history.append({"role": "assistant", "content": turn.interviewer_response})
-    if advance and session.phase_index < len(session.active_phases) - 1:
+    if advance and not is_last_phase:
         session.phase_index += 1
+
+    # End-of-interview hook: trigger dynamic feedback generation
+    if is_completed:
+        session.is_completed = True
+        print(f"  [Technical Discussion] Interview ended via [{completion_reason}]. Triggering dynamic feedback generation...")
+        from interview_engine.dynamic_feedback import generate_feedback
+        feedback = generate_feedback(session_id, explicit_mode="technical")
+        turn.feedback = feedback
 
     return turn
 
@@ -408,11 +455,15 @@ def technical_start(body: TechnicalStartRequest):
 
 @router.post("/turn", response_model=ConversationTurn, status_code=status.HTTP_200_OK)
 def technical_turn(body: TechnicalTurnRequest):
-    """Processes candidate response and returns the interviewer's adaptive follow-up."""
+    """Processes candidate response and returns the interviewer's adaptive follow-up or final feedback."""
     if body.session_id not in SESSIONS:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found.")
 
-    turn = advance_technical_conversation(body.session_id, body.candidate_answer)
+    turn = advance_technical_conversation(
+        session_id=body.session_id,
+        candidate_answer=body.candidate_answer,
+        end_interview=body.end_interview,
+    )
     if turn is None:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
