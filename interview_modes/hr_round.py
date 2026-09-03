@@ -23,6 +23,7 @@ import psycopg2.extras
 from pydantic import BaseModel, Field
 
 from interview_engine.conversation_schema import ConversationTurn
+from interview_engine.adaptive_engine import evaluate_and_decide
 
 load_dotenv()
 
@@ -135,11 +136,13 @@ def build_hr_system_message(
     level: str,
     phase: str,
     resume_data: dict | None,
+    adaptive_guidance: str = "",
 ) -> str:
+    guidance_section = f"\nADAPTIVE CONVERSATION GUIDANCE:\n{adaptive_guidance}\n" if adaptive_guidance else ""
     return f"""You are a supportive, insightful HR / Behavioral Interviewer conducting a live mock interview for {role} at {company} (Target Level: {level}).
 
 CURRENT PHASE: {phase} -- {HR_PHASE_GOALS.get(phase, 'Behavioral interview')}
-
+{guidance_section}
 {format_resume_details(resume_data)}
 
 HR INTERVIEW RULES:
@@ -147,7 +150,7 @@ HR INTERVIEW RULES:
 2. ONE QUESTION AT A TIME: Ask exactly ONE clear, thoughtful behavioral question or follow-up per turn. Keep it conversational and spoken-dialogue friendly.
 3. STAR METHOD PROBING: Prompt candidates to share concrete Situations, Tasks, Actions, and Results. If their answer is generic, gently ask for a specific story or measurable outcome.
 4. NO TECHNICAL CODING: This is strictly an HR/Behavioral round. Do NOT ask algorithmic or syntax questions.
-5. ADVANCE PHASE: Set `advance_phase` to true after 1-2 exchanges on the current topic to progress the interview naturally.
+5. ADAPTIVE FOLLOW-UPS: Follow the adaptive conversation guidance. If instructed to probe, ask a targeted follow-up. If instructed to advance, transition smoothly.
 6. JSON FORMAT: You MUST return a JSON object with:
    - "interviewer_response": string (your spoken greeting, question, or follow-up)
    - "cited_report_ids": [] (empty array since HR is resume-grounded)
@@ -192,7 +195,7 @@ def call_llm(system_message: str, turn_history: list[dict], max_retries: int = 3
                     model=model,
                     messages=messages,
                     temperature=0.7,
-                    max_tokens=1024,
+                    max_tokens=2048,
                 )
                 if not res or not res.choices:
                     continue
@@ -211,19 +214,79 @@ def call_llm(system_message: str, turn_history: list[dict], max_retries: int = 3
     return None
 
 
+def extract_inner_interviewer_response(data: Any) -> str:
+    """Extracts and unwraps the inner plain text interviewer response."""
+    if isinstance(data, dict):
+        val = data.get("interviewer_response", "")
+        return extract_inner_interviewer_response(val)
+
+    text = str(data).strip()
+    if text.startswith("{") and '"interviewer_response"' in text:
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            try:
+                nested = json.loads(match.group(0))
+                if isinstance(nested, dict) and "interviewer_response" in nested:
+                    return extract_inner_interviewer_response(nested["interviewer_response"])
+            except Exception:
+                pass
+    return text
+
+
 def parse_turn_json(content: str) -> ConversationTurn | None:
+    """Parses LLM structured response and extracts the inner plain text interviewer_response."""
+    content = content.strip()
+
+    # 1. Standard JSON object extraction
     match = re.search(r"\{.*\}", content, re.DOTALL)
     if match:
         try:
             data = json.loads(match.group(0))
-            return ConversationTurn.model_validate(data)
+            if isinstance(data, dict):
+                clean_response = extract_inner_interviewer_response(data.get("interviewer_response", ""))
+                if clean_response:
+                    return ConversationTurn(
+                        interviewer_response=clean_response,
+                        cited_report_ids=data.get("cited_report_ids", []),
+                        grounded=bool(data.get("grounded", True)),
+                        advance_phase=bool(data.get("advance_phase", False)),
+                    )
         except Exception:
             pass
 
-    clean_text = content.strip()
-    if clean_text:
+    # 2. Resilient regex extraction for truncated JSON
+    resp_match = re.search(r'"interviewer_response"\s*:\s*"((?:[^"\\]|\\.)*)', content)
+    if resp_match:
+        try:
+            raw_val = f'"{resp_match.group(1)}"'
+            extracted_text = json.loads(raw_val)
+        except Exception:
+            extracted_text = resp_match.group(1).replace('\\"', '"').replace('\\n', '\n')
+
+        clean_text = extract_inner_interviewer_response(extracted_text)
+        if clean_text:
+            grounded_match = re.search(r'"grounded"\s*:\s*(true|false)', content, re.IGNORECASE)
+            advance_match = re.search(r'"advance_phase"\s*:\s*(true|false)', content, re.IGNORECASE)
+            return ConversationTurn(
+                interviewer_response=clean_text,
+                cited_report_ids=[],
+                grounded=grounded_match.group(1).lower() == "true" if grounded_match else True,
+                advance_phase=advance_match.group(1).lower() == "true" if advance_match else False,
+            )
+
+    # 3. Log a clear error if JSON parsing fails and clean any raw JSON syntax artifacts
+    print(f"  [ERROR] Failed to parse structured JSON from LLM output. Raw snippet: {content[:160]}...")
+    clean_fallback = re.sub(r'[{}\[\]"]', '', content)
+    clean_fallback = re.sub(
+        r'^(?:interviewer_response|cited_report_ids|grounded|advance_phase)\s*:\s*',
+        '',
+        clean_fallback,
+        flags=re.MULTILINE,
+    ).strip()
+
+    if clean_fallback:
         return ConversationTurn(
-            interviewer_response=clean_text,
+            interviewer_response=clean_fallback,
             cited_report_ids=[],
             grounded=True,
             advance_phase=False,
@@ -280,20 +343,40 @@ def advance_hr_conversation(session_id: str, candidate_answer: str) -> Conversat
     ctx = SESSION_CONTEXT.get(session_id, {"resume_data": None})
     session.history.append({"role": "user", "content": candidate_answer})
 
+    active_phase = current_phase(session)
+    decision = evaluate_and_decide(
+        session_id=session_id,
+        topic=active_phase,
+        candidate_answer=candidate_answer,
+        interview_type="hr",
+    )
+
+    if decision.should_interrupt:
+        guidance = f"INTERRUPT AND REDIRECT: Intervene immediately to address a major contradiction or redirect: {decision.reasoning}"
+    elif decision.next_action == "follow_up":
+        guidance = f"FOLLOW-UP PROBE: Ask a focused behavioral/STAR follow-up on {active_phase} to dig deeper into specific actions, results, or challenges (depth={decision.depth_score}/5). Reason: {decision.reasoning}. Do not change topics."
+    else:
+        guidance = f"TRANSITION TO NEXT TOPIC: Candidate gave a strong, well-structured STAR response (depth={decision.depth_score}/5, conf={decision.confidence_score}/5). Briefly acknowledge and smoothly transition to the next phase."
+
     system_msg = build_hr_system_message(
         company=session.company,
         role=session.role,
         level=session.level,
-        phase=current_phase(session),
+        phase=active_phase,
         resume_data=ctx["resume_data"],
+        adaptive_guidance=guidance,
     )
 
     turn = call_llm(system_msg, session.history)
     if turn is None:
         return None
 
+    # Advance phase when adaptive engine decides on new_topic / wrap_topic
+    advance = decision.next_action in ["new_topic", "wrap_topic"]
+    turn.advance_phase = advance
+
     session.history.append({"role": "assistant", "content": turn.interviewer_response})
-    if turn.advance_phase and session.phase_index < len(session.active_phases) - 1:
+    if advance and session.phase_index < len(session.active_phases) - 1:
         session.phase_index += 1
 
     return turn

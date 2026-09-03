@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 
 from interview_engine.conversation_schema import ConversationTurn
 from interview_engine.retrieval import retrieve_interview_context
+from interview_engine.adaptive_engine import evaluate_and_decide
 
 load_dotenv()
 
@@ -128,11 +129,13 @@ def build_system_message(
     phase: str,
     reports: list[dict],
     resume_data: dict | None,
+    adaptive_guidance: str = "",
 ) -> str:
+    guidance_section = f"\nADAPTIVE CONVERSATION GUIDANCE:\n{adaptive_guidance}\n" if adaptive_guidance else ""
     return f"""You are an expert senior software engineer conducting a live, voice-driven Technical Discussion mock interview for {role} at {company} (Level: {level}).
 
 CURRENT INTERVIEW PHASE: {phase} -- {PHASE_GOALS.get(phase, 'Technical discussion')}
-
+{guidance_section}
 HISTORICAL INTERVIEW PATTERNS FOR THIS COMPANY & ROLE:
 {format_reports(reports)}
 
@@ -142,9 +145,8 @@ INTERVIEW RULES:
 1. PURE CONVERSATIONAL ROUND: This is a spoken technical discussion covering DBMS, OS, Computer Networks, OOP, and Architecture. Do NOT ask for code implementation.
 2. ONE QUESTION AT A TIME: Ask exactly ONE focused question or probing follow-up per turn. Keep it concise for spoken dialogue.
 3. GROUNDING & CITATIONS: Ground claims about {company}'s real technical patterns in the retrieved reports and cite report IDs in `cited_report_ids`.
-4. ADAPTIVE FOLLOW-UPS: If the candidate gives a shallow answer, probe for deeper mechanics (e.g. internals, edge cases, trade-offs).
-5. ADVANCE PHASE: Set `advance_phase` to true when the candidate has adequately answered the core question of this phase (typically after 1-2 turns).
-6. JSON FORMAT: You MUST return a JSON object with:
+4. ADAPTIVE FOLLOW-UPS: Follow the adaptive conversation guidance. If instructed to probe, ask a targeted follow-up. If instructed to advance, transition smoothly.
+5. JSON FORMAT: You MUST return a JSON object with:
    - "interviewer_response": string (your spoken question or response)
    - "cited_report_ids": list of integers
    - "grounded": boolean
@@ -188,7 +190,7 @@ def call_llm(system_message: str, turn_history: list[dict], max_retries: int = 3
                     model=model,
                     messages=messages,
                     temperature=0.7,
-                    max_tokens=1024,
+                    max_tokens=2048,
                 )
                 if not res or not res.choices:
                     continue
@@ -207,20 +209,79 @@ def call_llm(system_message: str, turn_history: list[dict], max_retries: int = 3
     return None
 
 
+def extract_inner_interviewer_response(data: Any) -> str:
+    """Extracts and unwraps the inner plain text interviewer response."""
+    if isinstance(data, dict):
+        val = data.get("interviewer_response", "")
+        return extract_inner_interviewer_response(val)
+
+    text = str(data).strip()
+    if text.startswith("{") and '"interviewer_response"' in text:
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            try:
+                nested = json.loads(match.group(0))
+                if isinstance(nested, dict) and "interviewer_response" in nested:
+                    return extract_inner_interviewer_response(nested["interviewer_response"])
+            except Exception:
+                pass
+    return text
+
+
 def parse_turn_json(content: str) -> ConversationTurn | None:
+    """Parses LLM structured response and extracts the inner plain text interviewer_response."""
+    content = content.strip()
+
+    # 1. Standard JSON object extraction
     match = re.search(r"\{.*\}", content, re.DOTALL)
     if match:
         try:
             data = json.loads(match.group(0))
-            return ConversationTurn.model_validate(data)
+            if isinstance(data, dict):
+                clean_response = extract_inner_interviewer_response(data.get("interviewer_response", ""))
+                if clean_response:
+                    return ConversationTurn(
+                        interviewer_response=clean_response,
+                        cited_report_ids=data.get("cited_report_ids", []),
+                        grounded=bool(data.get("grounded", True)),
+                        advance_phase=bool(data.get("advance_phase", False)),
+                    )
         except Exception:
             pass
 
-    # Fallback to plain text wrapping
-    clean_text = content.strip()
-    if clean_text:
+    # 2. Resilient regex extraction for truncated JSON
+    resp_match = re.search(r'"interviewer_response"\s*:\s*"((?:[^"\\]|\\.)*)', content)
+    if resp_match:
+        try:
+            raw_val = f'"{resp_match.group(1)}"'
+            extracted_text = json.loads(raw_val)
+        except Exception:
+            extracted_text = resp_match.group(1).replace('\\"', '"').replace('\\n', '\n')
+
+        clean_text = extract_inner_interviewer_response(extracted_text)
+        if clean_text:
+            grounded_match = re.search(r'"grounded"\s*:\s*(true|false)', content, re.IGNORECASE)
+            advance_match = re.search(r'"advance_phase"\s*:\s*(true|false)', content, re.IGNORECASE)
+            return ConversationTurn(
+                interviewer_response=clean_text,
+                cited_report_ids=[],
+                grounded=grounded_match.group(1).lower() == "true" if grounded_match else True,
+                advance_phase=advance_match.group(1).lower() == "true" if advance_match else False,
+            )
+
+    # 3. Log a clear error if JSON parsing fails and clean any raw JSON syntax artifacts
+    print(f"  [ERROR] Failed to parse structured JSON from LLM output. Raw snippet: {content[:160]}...")
+    clean_fallback = re.sub(r'[{}\[\]"]', '', content)
+    clean_fallback = re.sub(
+        r'^(?:interviewer_response|cited_report_ids|grounded|advance_phase)\s*:\s*',
+        '',
+        clean_fallback,
+        flags=re.MULTILINE,
+    ).strip()
+
+    if clean_fallback:
         return ConversationTurn(
-            interviewer_response=clean_text,
+            interviewer_response=clean_fallback,
             cited_report_ids=[],
             grounded=True,
             advance_phase=False,
@@ -280,21 +341,41 @@ def advance_technical_conversation(session_id: str, candidate_answer: str) -> Co
     ctx = SESSION_CONTEXT.get(session_id, {"reports": [], "resume_data": None})
     session.history.append({"role": "user", "content": candidate_answer})
 
+    active_phase = current_phase(session)
+    decision = evaluate_and_decide(
+        session_id=session_id,
+        topic=active_phase,
+        candidate_answer=candidate_answer,
+        interview_type="technical",
+    )
+
+    if decision.should_interrupt:
+        guidance = f"INTERRUPT AND REDIRECT: Intervene immediately to address a critical misconception: {decision.reasoning}"
+    elif decision.next_action == "follow_up":
+        guidance = f"FOLLOW-UP PROBE: Ask a focused probing follow-up on {active_phase} to address gaps or test deeper mechanics (depth={decision.depth_score}/5). Reason: {decision.reasoning}. Do not switch topics."
+    else:
+        guidance = f"TRANSITION TO NEXT TOPIC: Candidate gave a strong/complete response (depth={decision.depth_score}/5, conf={decision.confidence_score}/5). Briefly acknowledge and smoothly transition to the next phase."
+
     system_msg = build_system_message(
         company=session.company,
         role=session.role,
         level=session.level,
-        phase=current_phase(session),
+        phase=active_phase,
         reports=ctx["reports"],
         resume_data=ctx["resume_data"],
+        adaptive_guidance=guidance,
     )
 
     turn = call_llm(system_msg, session.history)
     if turn is None:
         return None
 
+    # Advance phase when adaptive engine decides on new_topic / wrap_topic
+    advance = decision.next_action in ["new_topic", "wrap_topic"]
+    turn.advance_phase = advance
+
     session.history.append({"role": "assistant", "content": turn.interviewer_response})
-    if turn.advance_phase and session.phase_index < len(session.active_phases) - 1:
+    if advance and session.phase_index < len(session.active_phases) - 1:
         session.phase_index += 1
 
     return turn
