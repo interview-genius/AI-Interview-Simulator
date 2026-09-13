@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useSpeechRecognition } from './useSpeechRecognition';
 import { useSpeechSynthesis } from './useSpeechSynthesis';
 import type { TranscriptEntry } from '../types/interview';
@@ -6,7 +6,6 @@ import type { TranscriptEntry } from '../types/interview';
 export type ConversationStatus = 'idle' | 'listening' | 'processing' | 'speaking';
 
 interface UseVoiceConversationOptions {
-  /** Sends the candidate's text to the backend, returns the interviewer's reply text. */
   onSubmit: (text: string) => Promise<string>;
 }
 
@@ -16,13 +15,7 @@ interface UseVoiceConversationResult {
   interimText: string;
   isSpeechSupported: boolean;
   error: string | null;
-  startListening: () => void;
-  stopListening: () => void;
-  /** The type-instead path -- feeds the exact same processing step as a
-   *  finalized voice utterance, not a separate/lesser code path. */
   submitTypedAnswer: (text: string) => void;
-  /** Injects the opening interviewer line (from a session-start API call)
-   *  into the transcript and speaks it, without an actual candidate turn. */
   announceOpening: (text: string) => void;
 }
 
@@ -33,7 +26,7 @@ export function useVoiceConversation({
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const { speak, isSupported: ttsSupported } = useSpeechSynthesis();
+  const { speak, isSupported: ttsSupported, isSpeaking } = useSpeechSynthesis();
 
   const processCandidateText = useCallback(
     async (text: string) => {
@@ -52,31 +45,59 @@ export function useVoiceConversation({
 
       setTranscript((prev) => [...prev, { speaker: 'interviewer', text: reply }]);
       setStatus('speaking');
-      speak(reply, () => setStatus('idle'));
+      speak(reply, () => {
+        setStatus('idle');
+      });
     },
     [onSubmit, speak]
   );
 
-  const { isListening, isSupported: sttSupported, interimText, start, stop } =
-    useSpeechRecognition({ onFinalResult: processCandidateText });
+  const { isSupported: sttSupported, interimText, start, stop } =
+    useSpeechRecognition({ onFinalResult: processCandidateText, silenceTimeoutMs: 8000 });
 
-  const startListening = useCallback(() => {
-    setError(null);
-    setStatus('listening');
-    start();
-  }, [start]);
+  // Auto-manage listening state
+  useEffect(() => {
+    if (status === 'idle') {
+      setStatus('listening');
+      start();
+    } else if (status === 'processing' || status === 'speaking') {
+      stop();
+    }
+  }, [status, start, stop]);
 
-  const stopListening = useCallback(() => {
-    stop();
-    setStatus('idle');
-  }, [stop]);
+  // When TTS stops, if we were speaking, go back to idle (which triggers listening)
+  useEffect(() => {
+    if (status === 'speaking' && !isSpeaking) {
+      setStatus('idle');
+    }
+  }, [isSpeaking, status]);
+
+  const proactiveSilenceTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (status === 'listening') {
+      const resetTimer = () => {
+        if (proactiveSilenceTimerRef.current) window.clearTimeout(proactiveSilenceTimerRef.current);
+        proactiveSilenceTimerRef.current = window.setTimeout(() => {
+          stop();
+          void processCandidateText('[SILENCE]');
+        }, 15000); // 15 seconds of silence
+      };
+
+      resetTimer();
+
+      return () => {
+        if (proactiveSilenceTimerRef.current) window.clearTimeout(proactiveSilenceTimerRef.current);
+      };
+    }
+  }, [status, interimText, stop, processCandidateText]);
 
   const submitTypedAnswer = useCallback(
     (text: string) => {
-      if (isListening) stop();
+      stop();
       void processCandidateText(text);
     },
-    [isListening, stop, processCandidateText]
+    [stop, processCandidateText]
   );
 
   const announceOpening = useCallback(
@@ -94,8 +115,6 @@ export function useVoiceConversation({
     interimText,
     isSpeechSupported: sttSupported && ttsSupported,
     error,
-    startListening,
-    stopListening,
     submitTypedAnswer,
     announceOpening,
   };

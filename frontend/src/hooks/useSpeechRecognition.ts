@@ -31,6 +31,7 @@ export function useSpeechRecognition({
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const silenceTimerRef = useRef<number | null>(null);
   const accumulatedRef = useRef('');
+  const manualStopRef = useRef(false);
 
   const RecognitionCtor =
     typeof window !== 'undefined'
@@ -57,6 +58,7 @@ export function useSpeechRecognition({
   const start = useCallback(() => {
     if (!RecognitionCtor || isListening) return;
 
+    manualStopRef.current = false;
     const recognition = new RecognitionCtor();
     recognition.continuous = true;
     recognition.interimResults = true;
@@ -81,7 +83,17 @@ export function useSpeechRecognition({
     // "no-speech" fires routinely during normal pauses -- not a real
     // failure. The silence timer, not this handler, ends a turn.
     recognition.onerror = () => {};
-    recognition.onend = () => setIsListening(false);
+    recognition.onend = () => {
+      if (manualStopRef.current) {
+        setIsListening(false);
+      } else {
+        try {
+          recognition.start();
+        } catch (e) {
+          setIsListening(false);
+        }
+      }
+    };
 
     recognitionRef.current = recognition;
     recognition.start();
@@ -89,6 +101,7 @@ export function useSpeechRecognition({
   }, [RecognitionCtor, isListening, clearSilenceTimer, finalizeUtterance, silenceTimeoutMs]);
 
   const stop = useCallback(() => {
+    manualStopRef.current = true;
     clearSilenceTimer();
     recognitionRef.current?.stop();
     setIsListening(false);
@@ -96,6 +109,7 @@ export function useSpeechRecognition({
 
   useEffect(() => {
     return () => {
+      manualStopRef.current = true;
       clearSilenceTimer();
       recognitionRef.current?.stop();
     };

@@ -21,26 +21,29 @@ export function TranscriptLog({ entries, interimText }: TranscriptLogProps) {
         gap: 'var(--space-3)',
         maxHeight: '320px',
         overflowY: 'auto',
-        padding: 'var(--space-4)',
-        background: 'var(--color-surface)',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--color-border)',
+        padding: '24px',
+        background: '#1A1D16',
+        borderRadius: '16px',
+        border: '1px solid #2A3022',
+        color: '#FDFCF9',
       }}
     >
       {entries.length === 0 && !interimText && (
-        <p style={{ color: 'var(--color-text-secondary)', margin: 0 }}>
+        <p style={{ color: '#808877', margin: 0 }}>
           The conversation will appear here as it happens.
         </p>
       )}
-      {entries.map((entry, i) => (
-        <p key={i} style={{ margin: 0 }}>
-          <strong>{entry.speaker === 'candidate' ? 'You' : 'Interviewer'}:</strong>{' '}
+      {entries
+        .filter(entry => !entry.text.includes('[SILENCE]'))
+        .map((entry, i) => (
+        <p key={i} style={{ margin: 0, lineHeight: 1.6 }}>
+          <strong style={{ color: entry.speaker === 'candidate' ? '#B28B6A' : '#6C7A63' }}>{entry.speaker === 'candidate' ? 'You' : 'Interviewer'}:</strong>{' '}
           {entry.text}
         </p>
       ))}
       {interimText && (
-        <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>
-          <strong>You:</strong> {interimText}…
+        <p style={{ margin: 0, color: '#808877', lineHeight: 1.6 }}>
+          <strong style={{ color: '#B28B6A' }}>You:</strong> {interimText}…
         </p>
       )}
     </div>
