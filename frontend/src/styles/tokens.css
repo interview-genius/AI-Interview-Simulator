@@ -1,34 +1,37 @@
 /*
-  Design tokens -- plain CSS custom properties, not Tailwind/CSS-in-JS.
-  This is the first frontend code in the repo, so this file is meant to be
-  the shared convention: any other mode's UI (Config flow, Technical/HR)
-  should pull from these same tokens rather than introducing new colors.
-
-  Single dark theme, deliberately -- no light/dark toggle infrastructure
-  for a Step 8 shell. Text colors are chosen with real margin above WCAG AA
-  (4.5:1 for normal text): --color-text-secondary on --color-bg is roughly
-  9:1, --color-text-primary is roughly 17:1. Every state color (listening/
-  speaking/error) is always paired with a text label or icon in components
-  that use it -- never conveyed by color alone.
+  FlowState Design System Tokens
+  Warm, premium, organic, calm UX.
 */
 
 :root {
-  --color-bg: #0f1115;
-  --color-surface: #1a1d24;
-  --color-surface-raised: #22262f;
-  --color-border: #2e333d;
+  /* Core palette: Warm Neutrals */
+  --color-bg: #FDFCF9;          /* Soft cream / off-white */
+  --color-surface: #F5F4F0;     /* Slightly darker cream for cards */
+  --color-surface-raised: #FFFFFF; /* Pure white for elevated elements */
+  --color-border: #E8E6E1;      /* Subtle border */
+  --color-border-hover: #D6D3CB;
 
-  --color-text-primary: #f4f5f7;
-  --color-text-secondary: #b4b9c4;
+  /* Typography */
+  --color-text-primary: #2C2B29;   /* Muted charcoal */
+  --color-text-secondary: #6B6965;
+  --color-text-tertiary: #9E9C97;
 
-  --color-accent: #8ab4f8;       /* for text/links on dark backgrounds */
-  --color-accent-bg: #3b6fd6;    /* for filled buttons, paired with white text */
-  --color-accent-bg-hover: #4a7de0;
+  /* Accents: Sage / Olive / Earth tones */
+  --color-accent: #6C7A63;         /* Muted Sage Green */
+  --color-accent-hover: #5A6652;
+  --color-accent-bg: #E6EBE3;      /* Very light sage for active states */
+  --color-accent-fg: #2E382A;      /* Dark green for text on accent-bg */
+  
+  --color-secondary-accent: #B28B6A; /* Warm clay/terracotta */
 
-  --color-listening: #4ade80;
-  --color-speaking: #fbbf24;
-  --color-error: #f87171;
+  /* State colors */
+  --color-listening: #6C7A63; /* Sage for listening */
+  --color-speaking: #B28B6A;  /* Clay for speaking */
+  --color-thinking: #9E9C97;
+  --color-error: #D36B5B;     /* Muted red */
+  --color-success: #6C7A63;   /* Sage */
 
+  /* Spacing system (8px baseline) */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -36,20 +39,45 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --space-32: 128px;
+  --space-48: 192px;
+  /* Distinctive Typography */
+  --font-family-base: 'Inter', system-ui, sans-serif;
+  --font-family-heading: 'Lora', Georgia, serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  --font-family-base: system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-family-mono: ui-monospace, "Cascadia Code", "Fira Code", monospace;
-
+  /* Font scales - refined and balanced */
+  --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
-  --font-size-lg: 1.25rem;
+  --font-size-lg: 1.125rem;
   --font-size-xl: 1.5rem;
   --font-size-2xl: 2rem;
+  --font-size-3xl: 3rem;
+  --font-size-4xl: 4rem;
 
-  --radius-sm: 6px;
+  /* Borders / Radii - Soft and organic */
+  --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
 
-  --focus-ring: 3px solid var(--color-accent);
+  /* Shadows - Restrained and elegant */
+  --shadow-sm: 0 1px 2px rgba(44, 43, 41, 0.04);
+  --shadow-md: 0 4px 12px rgba(44, 43, 41, 0.06);
+  --shadow-lg: 0 12px 32px rgba(44, 43, 41, 0.08);
+
+  /* Focus and interaction */
+  --focus-ring: 2px solid var(--color-accent);
   --focus-ring-offset: 2px;
+  --transition-fast: 150ms ease-out;
+  --transition-smooth: 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+::selection {
+  background: var(--color-accent-bg);
+  color: var(--color-accent-fg);
 }
