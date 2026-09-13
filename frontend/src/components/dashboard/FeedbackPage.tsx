@@ -73,7 +73,7 @@ export function FeedbackPage() {
           <section className="fs-feedback__growth-card">
             <h2 className="fs-feedback__card-title">Your Growth</h2>
             <div className="fs-feedback__tree-area">
-              <TreeVisualization stage="Sapling" style={{ transform: 'scale(1.3)' }} />
+              <TreeVisualization stage="Little Sapling" style={{ transform: 'scale(1.3)' }} />
             </div>
             <p className="fs-feedback__growth-msg">
               Your communication score helped your tree grow new branches today. Keep it up!

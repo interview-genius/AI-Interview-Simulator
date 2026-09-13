@@ -15,7 +15,7 @@ interface TreeVisualizationProps {
 }
 
 export function TreeVisualization({ stage, style }: TreeVisualizationProps) {
-  const trees: Record<TreeStage, JSX.Element> = {
+  const trees: Record<TreeStage, React.ReactElement> = {
     'Seed': (
       <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
         {/* Ground lines */}

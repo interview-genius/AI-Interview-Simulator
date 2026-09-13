@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { TranscriptEntry } from '../../types/interview';
 
 interface TranscriptLogProps {
@@ -5,11 +6,13 @@ interface TranscriptLogProps {
   interimText: string;
 }
 
-/** Live captions for both sides of the conversation -- verbatim, never
- *  paraphrased, so it's a genuine accessible alternative to audio, not a
- *  summary. aria-live + role="log" means new lines are announced as they
- *  arrive without the whole region being re-read. */
 export function TranscriptLog({ entries, interimText }: TranscriptLogProps) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [entries, interimText]);
+
   return (
     <div
       role="log"
@@ -18,34 +21,44 @@ export function TranscriptLog({ entries, interimText }: TranscriptLogProps) {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 'var(--space-3)',
-        maxHeight: '320px',
-        overflowY: 'auto',
-        padding: '24px',
-        background: '#1A1D16',
-        borderRadius: '16px',
-        border: '1px solid #2A3022',
+        gap: '10px',
         color: '#FDFCF9',
+        fontSize: '0.88rem',
       }}
     >
       {entries.length === 0 && !interimText && (
-        <p style={{ color: '#808877', margin: 0 }}>
+        <p style={{ color: '#808877', margin: 0, fontStyle: 'italic', fontSize: '0.85rem' }}>
           The conversation will appear here as it happens.
         </p>
       )}
       {entries
-        .filter(entry => !entry.text.includes('[SILENCE]'))
+        .filter((entry) => !entry.text.includes('[SILENCE]'))
         .map((entry, i) => (
-        <p key={i} style={{ margin: 0, lineHeight: 1.6 }}>
-          <strong style={{ color: entry.speaker === 'candidate' ? '#B28B6A' : '#6C7A63' }}>{entry.speaker === 'candidate' ? 'You' : 'Interviewer'}:</strong>{' '}
-          {entry.text}
-        </p>
-      ))}
+          <div key={i} style={{ margin: 0, lineHeight: 1.5 }}>
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: '0.82rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                color: entry.speaker === 'candidate' ? '#B28B6A' : '#8DA382',
+                marginRight: '6px',
+              }}
+            >
+              {entry.speaker === 'candidate' ? 'You' : 'Interviewer'}:
+            </span>
+            <span style={{ color: entry.speaker === 'candidate' ? '#EAE8E3' : '#FDFCF9' }}>
+              {entry.text}
+            </span>
+          </div>
+        ))}
       {interimText && (
-        <p style={{ margin: 0, color: '#808877', lineHeight: 1.6 }}>
-          <strong style={{ color: '#B28B6A' }}>You:</strong> {interimText}…
-        </p>
+        <div style={{ margin: 0, color: '#808877', lineHeight: 1.5 }}>
+          <span style={{ fontWeight: 600, color: '#B28B6A', marginRight: '6px' }}>You:</span>
+          <span style={{ fontStyle: 'italic' }}>{interimText}…</span>
+        </div>
       )}
+      <div ref={bottomRef} />
     </div>
   );
 }

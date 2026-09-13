@@ -319,7 +319,7 @@ function GrowthSection() {
   ];
 
   // Kawaii-style SVG plants inspired by user inspiration
-  const trees: Record<number, JSX.Element> = {
+  const trees: Record<number, React.ReactElement> = {
     0: (
       <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
         {/* Ground lines */}
