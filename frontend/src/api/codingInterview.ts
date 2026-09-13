@@ -16,3 +16,10 @@ export function sendCodingTurn(
     current_code: currentCode,
   });
 }
+
+export function sendCodingSnapshot(sessionId: string, currentCode: string): Promise<any> {
+  return apiPost<any>('/coding/snapshot', {
+    session_id: sessionId,
+    current_code: currentCode,
+  });
+}

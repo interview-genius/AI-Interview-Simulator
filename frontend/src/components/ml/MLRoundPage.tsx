@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { startMLSession, sendMLTurn } from '../../api/mlInterview';
 import { useVoiceConversation } from '../../hooks/useVoiceConversation';
 import { VoiceConversationPanel } from '../voice/VoiceConversationPanel';
 
-// company/role/level/resume_id come from the URL for now, since Person A's
-// Config flow UI (Step 8) doesn't exist yet -- this is the seam it plugs
-// into (?company=...&role=...&level=...&resume_id=...), with demo defaults
-// so this page is testable standalone in the meantime.
 export function MLRoundPage() {
   const [searchParams] = useSearchParams();
   const company = searchParams.get('company') ?? 'Google';
@@ -15,6 +11,7 @@ export function MLRoundPage() {
   const level = searchParams.get('level') ?? 'New Grad';
   const resumeIdParam = searchParams.get('resume_id');
   const resumeId = resumeIdParam ? Number(resumeIdParam) : undefined;
+  const navigate = useNavigate();
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [phase, setPhase] = useState<string | null>(null);
@@ -49,21 +46,60 @@ export function MLRoundPage() {
 
   return (
     <main>
-      <h1 ref={headingRef} tabIndex={-1} style={{ fontSize: 'var(--font-size-xl)' }}>
-        ML Round -- {company} / {role}
-      </h1>
+      <header style={{ marginBottom: 'var(--space-6)' }}>
+        <h1 ref={headingRef} tabIndex={-1} style={{ fontSize: 'var(--font-size-2xl)', color: 'var(--color-accent)' }}>
+          ML System Design
+        </h1>
+        <p style={{ color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family-mono)' }}>
+          [{company}] // {role} // {level}
+        </p>
+        
+        <button 
+          onClick={() => navigate('/results')}
+          style={{
+            marginTop: '16px',
+            padding: '8px 16px',
+            background: 'var(--color-error, #D9534F)',
+            color: '#FFF',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '0.9rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'opacity 0.2s'
+          }}
+          onMouseOver={e => e.currentTarget.style.opacity = '0.8'}
+          onMouseOut={e => e.currentTarget.style.opacity = '1'}
+        >
+          End Interview
+        </button>
+      </header>
 
       {phase && (
-        <output style={{ display: 'block', color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
-          Current phase: {phase.replace(/_/g, ' ')}
-        </output>
+        <div style={{ 
+          display: 'inline-block',
+          padding: 'var(--space-2) var(--space-4)',
+          background: 'var(--color-surface-raised)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-sm)',
+          marginBottom: 'var(--space-6)',
+          fontFamily: 'var(--font-family-mono)',
+          color: 'var(--color-accent)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em'
+        }}>
+          PHASE: {phase.replace(/_/g, ' ')}
+        </div>
       )}
 
       {!sessionId ? (
-        <output>Starting your ML round…</output>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-12)' }}>
+          <span className="animate-safe" style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-family-mono)' }}>INITIALIZING GRID...</span>
+        </div>
       ) : (
         <VoiceConversationPanel conversation={conversation} />
       )}
     </main>
   );
 }
+
