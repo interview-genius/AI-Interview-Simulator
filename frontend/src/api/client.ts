@@ -24,3 +24,17 @@ export async function apiPost<TResponse>(path: string, body: unknown): Promise<T
 
   return res.json() as Promise<TResponse>;
 }
+
+export async function apiGet<TResponse>(path: string): Promise<TResponse> {
+  const res = await fetch(`/api${path}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => res.statusText);
+    throw new ApiError(res.status, detail || res.statusText);
+  }
+
+  return res.json() as Promise<TResponse>;
+}
