@@ -24,22 +24,30 @@ if not GROQ_API_KEY:
 client = Groq(api_key=GROQ_API_KEY)
 
 
-def build_system_message(problem: dict) -> str:
+def build_system_message(problem: dict, resume_data: dict | None) -> str:
+    resume_section = ""
+    if resume_data:
+        projects = resume_data.get("projects", [])
+        experience = resume_data.get("experience", [])
+        resume_section = f"\nCANDIDATE'S RESUME CONTEXT:\n- Projects: {projects}\n- Experience: {experience}\n(Draw lightly on their background if relevant, but focus on the problem.)\n"
+
     return f"""You are a voice interviewer conducting a live coding-round mock interview.
 
 PROBLEM GIVEN TO THE CANDIDATE:
 {problem['title']} ({problem['difficulty']})
 {problem['statement']}
+{resume_section}
+INTERVIEW PHASES:
+1. Approach Phase: Start by asking them to talk through their approach. Probe their logic, edge cases, or time/space complexity. Do not let this drag on. 
+2. Coding Phase: Once their approach sounds reasonable, explicitly say "Okay, that sounds good. Let's start writing the code." 
 
-IMPORTANT: you cannot see the candidate's code -- that capability arrives in a later
-stage of this product, not this one. Respond only to what the candidate says out loud
-(their explained approach, questions, or reasoning). Never claim to observe, read, or
-evaluate code you were not shown. If the candidate asks something only visible code
-could answer, say you can't see their editor and ask them to describe it instead.
+CODE AWARENESS:
+The turn history will include the candidate's current code at the time they spoke. You CAN see their code. If there are obvious syntax errors, logic flaws, or they are stuck, provide a brief hint or point it out just like a real interviewer would.
 
-Ask clarifying/follow-up questions the way a real interviewer would: probe their
-approach, ask about edge cases or complexity, but keep each turn short -- one
-question or remark at a time, this is a live spoken exchange.
+SILENCE HANDLING:
+If the candidate's latest response contains "[SILENCE]", they have been quiet for a prolonged period. You should proactively check in on them like a real human interviewer. Say something like "Are you facing any problems?", "Do you want to bounce some ideas off me?", or "Do you need a hint?". Do NOT explicitly mention the word "silence".
+
+Ask clarifying/follow-up questions the way a real interviewer would: keep each turn short -- one question or remark at a time, this is a live spoken exchange.
 """
 
 
@@ -53,8 +61,8 @@ CODING_JSON_SCHEMA = {
 }
 
 
-def call_groq(problem: dict, turn_history: list[dict]) -> str:
-    messages = [{"role": "system", "content": build_system_message(problem)}] + turn_history
+def call_groq(problem: dict, turn_history: list[dict], resume_data: dict | None = None) -> str:
+    messages = [{"role": "system", "content": build_system_message(problem, resume_data)}] + turn_history
 
     response = client.chat.completions.create(
         model=GROQ_MODEL,

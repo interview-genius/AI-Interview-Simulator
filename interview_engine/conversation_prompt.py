@@ -87,6 +87,7 @@ RULES:
   exchange, not a monologue.
 - Set advance_phase to true once this phase has been reasonably covered (typically
   after 1-3 exchanges), so the conversation keeps moving.
+- SILENCE: If the candidate's response contains "[SILENCE]", they have been quiet for a while. Proactively check in (e.g. "Are you still there?", "Do you need a moment to think?"). Do NOT explicitly mention the word "silence".
 """
 
 

@@ -243,12 +243,22 @@ def evaluate_and_decide(
     state = get_or_create_adaptive_state(session_id, topic)
     topic_state = state.topics_covered[topic]
 
-    heuristic_depth = compute_heuristic_depth(candidate_answer)
-    heuristic_conf = compute_heuristic_confidence(candidate_answer)
-
     # Check external live coding signal override
     pending_signal = state.pending_external_signal
     state.pending_external_signal = None  # Consume signal
+
+    is_silent = "[SILENCE]" in candidate_answer
+
+    if is_silent:
+        depth = 1
+        confidence = 1
+        should_interrupt = False
+        should_follow_up = True
+        next_action = "follow_up"
+        reasoning = "Candidate was silent. Triggering proactive prompt."
+    else:
+        heuristic_depth = compute_heuristic_depth(candidate_answer)
+        heuristic_conf = compute_heuristic_confidence(candidate_answer)
 
     system_prompt = """You are an expert interviewer evaluating a candidate's answer to decide the next conversational step.
 Return a JSON object with:
@@ -280,33 +290,34 @@ Heuristic Depth Hint: {heuristic_depth}/5
 Heuristic Confidence Hint: {heuristic_conf}/5
 """
 
-    llm_result = call_llm_json(system_prompt, user_prompt)
+    if not is_silent:
+        llm_result = call_llm_json(system_prompt, user_prompt)
 
-    if llm_result:
-        try:
-            depth = int(llm_result.get("depth_score", heuristic_depth))
-            confidence = int(llm_result.get("confidence_score", heuristic_conf))
-            should_interrupt = bool(llm_result.get("should_interrupt", False))
-            should_follow_up = bool(llm_result.get("should_follow_up", False))
-            next_action = str(llm_result.get("next_action", "new_topic"))
-            if next_action not in ["follow_up", "new_topic", "wrap_topic"]:
+        if llm_result:
+            try:
+                depth = int(llm_result.get("depth_score", heuristic_depth))
+                confidence = int(llm_result.get("confidence_score", heuristic_conf))
+                should_interrupt = bool(llm_result.get("should_interrupt", False))
+                should_follow_up = bool(llm_result.get("should_follow_up", False))
+                next_action = str(llm_result.get("next_action", "new_topic"))
+                if next_action not in ["follow_up", "new_topic", "wrap_topic"]:
+                    next_action = "follow_up" if should_follow_up else "new_topic"
+                reasoning = str(llm_result.get("reasoning", "Adaptive evaluation completed."))
+            except Exception:
+                depth = heuristic_depth
+                confidence = heuristic_conf
+                should_interrupt = False
+                should_follow_up = depth <= 2 and topic_state.follow_ups_count < 2
                 next_action = "follow_up" if should_follow_up else "new_topic"
-            reasoning = str(llm_result.get("reasoning", "Adaptive evaluation completed."))
-        except Exception:
+                reasoning = f"Heuristic evaluation: depth={depth}, confidence={confidence}."
+        else:
+            # Fallback to pure heuristic decision
             depth = heuristic_depth
             confidence = heuristic_conf
             should_interrupt = False
-            should_follow_up = depth <= 2 and topic_state.follow_ups_count < 2
+            should_follow_up = (depth <= 2 or confidence <= 2) and topic_state.follow_ups_count < 2
             next_action = "follow_up" if should_follow_up else "new_topic"
-            reasoning = f"Heuristic evaluation: depth={depth}, confidence={confidence}."
-    else:
-        # Fallback to pure heuristic decision
-        depth = heuristic_depth
-        confidence = heuristic_conf
-        should_interrupt = False
-        should_follow_up = (depth <= 2 or confidence <= 2) and topic_state.follow_ups_count < 2
-        next_action = "follow_up" if should_follow_up else "new_topic"
-        reasoning = f"Heuristic fallback: depth={depth}/5, confidence={confidence}/5, follow_ups={topic_state.follow_ups_count}."
+            reasoning = f"Heuristic fallback: depth={depth}/5, confidence={confidence}/5, follow_ups={topic_state.follow_ups_count}."
 
     # External coding signal override
     if pending_signal and pending_signal.get("trigger"):

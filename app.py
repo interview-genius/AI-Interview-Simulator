@@ -15,6 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from resume_intelligence.api import router as resume_router
 from interview_engine.api import router as interview_router
 from interview_modes import config_router, technical_discussion_router, hr_round_router
+from interview_engine.coding_intelligence import router as coding_intel_router
+from analytics.dashboard_api import router as dashboard_router
+from interview_engine.tts_api import router as tts_router
 
 app = FastAPI(title="Interview Simulator")
 
@@ -32,3 +35,6 @@ app.include_router(interview_router, prefix="/api")
 app.include_router(config_router, prefix="/api")
 app.include_router(technical_discussion_router, prefix="/api")
 app.include_router(hr_round_router, prefix="/api")
+app.include_router(coding_intel_router, prefix="/api")
+app.include_router(dashboard_router, prefix="/api")
+app.include_router(tts_router, prefix="/api")

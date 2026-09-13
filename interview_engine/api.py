@@ -30,6 +30,7 @@ class CodingStartRequest(BaseModel):
     company: str | None = None
     role: str | None = None
     level: str | None = None
+    resume_id: int | None = None
 
 
 class CodingTurnRequest(BaseModel):
@@ -64,7 +65,7 @@ def ml_turn(body: MLTurnRequest):
 
 @router.post("/coding/start")
 def coding_start(body: CodingStartRequest):
-    session_id, problem, opening_line = coding.start_coding_session(level=body.level, role=body.role)
+    session_id, problem, opening_line = coding.start_coding_session(level=body.level, role=body.role, resume_id=body.resume_id)
     return {"session_id": session_id, "problem": problem, "opening_line": opening_line}
 
 

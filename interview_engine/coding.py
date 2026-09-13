@@ -16,18 +16,20 @@ from pydantic import BaseModel, ValidationError
 
 from interview_engine.coding_bank import pick_problem
 from interview_engine.coding_prompt import call_groq
+from interview_engine.adaptive_engine import get_or_create_adaptive_state
+from interview_engine.conversation import fetch_resume
 
-SESSIONS: dict[str, dict] = {}  # session_id -> {problem, history, current_code}
+SESSIONS: dict[str, dict] = {}  # session_id -> {problem, history, current_code, resume_data}
 
 
 class CodingTurn(BaseModel):
     interviewer_response: str
 
 
-def call_groq_with_retry(problem: dict, turn_history: list[dict], max_retries: int = 4) -> str | None:
+def call_groq_with_retry(problem: dict, turn_history: list[dict], max_retries: int = 4, resume_data: dict | None = None) -> str | None:
     for attempt in range(max_retries):
         try:
-            return call_groq(problem, turn_history)
+            return call_groq(problem, turn_history, resume_data=resume_data)
         except RateLimitError:
             wait = 5 * (attempt + 1)
             print(f"    [rate limited] waiting {wait}s (retry {attempt+1}/{max_retries})...")
@@ -38,9 +40,11 @@ def call_groq_with_retry(problem: dict, turn_history: list[dict], max_retries: i
     return None
 
 
-def start_coding_session(level: str | None = None, role: str | None = None) -> tuple[str, dict, str]:
+def start_coding_session(level: str | None = None, role: str | None = None, resume_id: int | None = None) -> tuple[str, dict, str]:
     """Returns (session_id, problem, opening_line)."""
     problem = pick_problem(level=level, role=role)
+    resume_data = fetch_resume(resume_id) if resume_id is not None else None
+    
     opening_line = (
         f"Let's start with a coding problem: {problem['title']}. "
         f"Take a moment to read it, and talk me through your approach before you start coding."
@@ -51,6 +55,7 @@ def start_coding_session(level: str | None = None, role: str | None = None) -> t
         "problem": problem,
         "history": [{"role": "assistant", "content": opening_line}],
         "current_code": problem["starter_code"],
+        "resume_data": resume_data,
     }
     return session_id, problem, opening_line
 
@@ -62,11 +67,25 @@ def advance_coding_conversation(session_id: str, candidate_message: str,
         return None
 
     if current_code is not None:
-        session["current_code"] = current_code  # stored, not read by the LLM (see coding_prompt.py)
+        session["current_code"] = current_code  # stored, and now read by the LLM
 
     session["history"].append({"role": "user", "content": candidate_message})
 
-    raw = call_groq_with_retry(session["problem"], session["history"])
+    # Prepare temporary history for the prompt
+    code_context_msg = {
+        "role": "system", 
+        "content": f"CANDIDATE'S CURRENT CODE:\n```python\n{session['current_code']}\n```"
+    }
+    prompt_history = session["history"] + [code_context_msg]
+
+    adaptive_state = get_or_create_adaptive_state(session_id)
+    if adaptive_state.pending_external_signal:
+        signal = adaptive_state.pending_external_signal
+        adaptive_state.pending_external_signal = None
+        instruction = f"CRITICAL: The live coding intelligence engine flagged this issue based on the candidate's latest code change: '{signal['message_to_candidate']}'. Ensure you weave this observation or question naturally into your next response."
+        prompt_history.append({"role": "system", "content": instruction})
+
+    raw = call_groq_with_retry(session["problem"], prompt_history, resume_data=session.get("resume_data"))
     if raw is None:
         return None
     try:
