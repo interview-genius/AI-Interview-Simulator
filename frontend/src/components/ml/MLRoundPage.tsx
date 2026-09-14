@@ -55,7 +55,20 @@ export function MLRoundPage() {
         </p>
         
         <button 
-          onClick={() => navigate('/results')}
+          onClick={() => {
+            const sessionData = {
+              sessionId,
+              company,
+              role,
+              level,
+              round_type: 'ml',
+              transcript: conversation.transcript,
+            };
+            try {
+              sessionStorage.setItem('last_interview_session', JSON.stringify(sessionData));
+            } catch (e) {}
+            navigate('/results', { state: sessionData });
+          }}
           style={{
             marginTop: '16px',
             padding: '8px 16px',
@@ -73,6 +86,7 @@ export function MLRoundPage() {
         >
           End Interview
         </button>
+
       </header>
 
       {phase && (

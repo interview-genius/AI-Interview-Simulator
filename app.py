@@ -18,6 +18,7 @@ from interview_modes import config_router, technical_discussion_router, hr_round
 from interview_engine.coding_intelligence import router as coding_intel_router
 from analytics.dashboard_api import router as dashboard_router
 from interview_engine.tts_api import router as tts_router
+from auth.api import router as auth_router
 
 app = FastAPI(title="Interview Simulator")
 
@@ -38,3 +39,5 @@ app.include_router(hr_round_router, prefix="/api")
 app.include_router(coding_intel_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
 app.include_router(tts_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+

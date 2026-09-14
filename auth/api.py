@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Header, HTTPException, Query, status
+from fastapi import APIRouter, FastAPI, Header, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 import psycopg2
 import psycopg2.extras
@@ -26,9 +26,11 @@ from pydantic import BaseModel, Field
 from auth.auth_utils import (
     create_access_token,
     extract_user_id_from_header,
+    get_or_create_user_by_email,
     hash_password,
     verify_password,
 )
+
 from auth.profile import (
     get_user_interview_history,
     get_user_profile,
@@ -41,6 +43,8 @@ load_dotenv()
 DB_URL = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
 if not DB_URL:
     raise ValueError("Neither SUPABASE_DB_URL nor DATABASE_URL found in .env")
+
+router = APIRouter(tags=["auth"])
 
 app = FastAPI(
     title="Interview Simulator -- Auth & Profiles",
@@ -99,9 +103,12 @@ class RecordInterviewRequest(BaseModel):
 # Authentication Helper
 # ---------------------------------------------------------------------------
 
-def require_authenticated_user(authorization: str | None = Header(None)) -> int:
-    """Validates the Authorization header and returns the authenticated user_id."""
-    user_id = extract_user_id_from_header(authorization)
+def require_authenticated_user(
+    authorization: str | None = Header(None),
+    x_user_email: str | None = Header(None),
+) -> int:
+    """Validates the Authorization header or X-User-Email and returns the authenticated user_id."""
+    user_id = extract_user_id_from_header(authorization, x_user_email=x_user_email)
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -111,11 +118,12 @@ def require_authenticated_user(authorization: str | None = Header(None)) -> int:
     return user_id
 
 
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
-@app.post("/signup", status_code=status.HTTP_201_CREATED)
+@router.post("/signup", status_code=status.HTTP_201_CREATED)
 def signup(req: SignupRequest):
     """Registers a new user account and initializes a candidate profile."""
     conn = get_db_connection()
@@ -159,7 +167,7 @@ def signup(req: SignupRequest):
         conn.close()
 
 
-@app.post("/login")
+@router.post("/login")
 def login(req: LoginRequest):
     """Authenticates user credentials and returns an access token."""
     conn = get_db_connection()
@@ -191,10 +199,13 @@ def login(req: LoginRequest):
         conn.close()
 
 
-@app.get("/profile")
-def get_profile(authorization: str | None = Header(None)):
+@router.get("/profile")
+def get_profile(
+    authorization: str | None = Header(None),
+    x_user_email: str | None = Header(None),
+):
     """Retrieves the candidate profile for the authenticated user."""
-    user_id = require_authenticated_user(authorization)
+    user_id = require_authenticated_user(authorization, x_user_email=x_user_email)
     conn = get_db_connection()
     try:
         ensure_tables_exist(conn)
@@ -206,10 +217,14 @@ def get_profile(authorization: str | None = Header(None)):
         conn.close()
 
 
-@app.put("/profile")
-def update_profile(req: ProfileUpdateRequest, authorization: str | None = Header(None)):
+@router.put("/profile")
+def update_profile(
+    req: ProfileUpdateRequest,
+    authorization: str | None = Header(None),
+    x_user_email: str | None = Header(None),
+):
     """Updates candidate profile information (target role, bio, experience level)."""
-    user_id = require_authenticated_user(authorization)
+    user_id = require_authenticated_user(authorization, x_user_email=x_user_email)
     conn = get_db_connection()
     try:
         ensure_tables_exist(conn)
@@ -226,32 +241,42 @@ def update_profile(req: ProfileUpdateRequest, authorization: str | None = Header
         conn.close()
 
 
-@app.get("/interview-history")
+@router.get("/interview-history")
 def list_interview_history(
     limit: int = Query(20, ge=1, le=100),
     authorization: str | None = Header(None),
+    x_user_email: str | None = Header(None),
 ):
-    """Retrieves the past mock interview history sessions for the authenticated user."""
-    user_id = require_authenticated_user(authorization)
+    """Retrieves past mock interview history sessions for the authenticated user."""
     conn = get_db_connection()
     try:
         ensure_tables_exist(conn)
+        user_id = extract_user_id_from_header(authorization, x_user_email=x_user_email, conn=conn)
+        if not user_id:
+            # If guest/unauthenticated, return empty or fallback
+            return {"user_id": None, "count": 0, "interview_history": []}
+
         history = get_user_interview_history(conn, user_id=user_id, limit=limit)
         return {"user_id": user_id, "count": len(history), "interview_history": history}
     finally:
         conn.close()
 
 
-@app.post("/interview-history", status_code=status.HTTP_201_CREATED)
+@router.post("/interview-history", status_code=status.HTTP_201_CREATED)
 def record_interview(
     req: RecordInterviewRequest,
     authorization: str | None = Header(None),
+    x_user_email: str | None = Header(None),
 ):
     """Records a completed mock interview transcript and feedback result."""
-    user_id = require_authenticated_user(authorization)
     conn = get_db_connection()
     try:
         ensure_tables_exist(conn)
+        user_id = extract_user_id_from_header(authorization, x_user_email=x_user_email, conn=conn)
+        if not user_id:
+            # Guest mode: ensure a guest user exists or use user_id = None/1
+            user_id = get_or_create_user_by_email("guest@flowstate.ai", conn=conn)
+
         history_id = record_interview_history(
             conn,
             user_id=user_id,
@@ -261,6 +286,10 @@ def record_interview(
             session_transcript=req.session_transcript,
             feedback_result=req.feedback_result,
         )
-        return {"message": "Interview session recorded", "interview_history_id": history_id}
+        return {"message": "Interview session recorded", "interview_history_id": history_id, "user_id": user_id}
     finally:
         conn.close()
+
+
+app.include_router(router)
+

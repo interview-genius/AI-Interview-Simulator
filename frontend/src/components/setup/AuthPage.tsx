@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../api/supabase';
+import { supabase, isSupabaseConfigured } from '../../api/supabase';
+import { apiPost } from '../../api/client';
 import { LogoMark } from '../shared/SharedNavbar';
 
 export function AuthPage() {
@@ -14,44 +15,103 @@ export function AuthPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+    setLoading(true);
 
-    let authError = null;
-
-    if (isRegistering) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName }
+    // 1. Attempt Supabase Auth if configured and valid
+    if (isSupabaseConfigured) {
+      try {
+        if (isRegistering) {
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { full_name: fullName }
+            }
+          });
+          if (error) {
+            if (!error.message?.toLowerCase().includes('api key') && !error.message?.toLowerCase().includes('fetch')) {
+              setError(error.message);
+              setLoading(false);
+              return;
+            }
+          } else if (data?.session) {
+            navigate('/onboarding');
+            return;
+          }
+        } else {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) {
+            if (!error.message?.toLowerCase().includes('api key') && !error.message?.toLowerCase().includes('fetch')) {
+              setError(error.message);
+              setLoading(false);
+              return;
+            }
+          } else if (data?.session) {
+            navigate('/dashboard');
+            return;
+          }
         }
-      });
-      authError = error;
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      authError = error;
+      } catch (err: any) {
+        // Fall through to backend auth
+      }
     }
 
-    if (authError) {
-      setError(authError.message);
-    } else {
-      navigate('/onboarding');
+    // 2. Seamless Backend Auth Fallback (stores in PostgreSQL users & profiles directly)
+    try {
+      if (isRegistering) {
+        const res = await apiPost<{ access_token: string; user_id: number; email: string }>('/signup', {
+          email,
+          password,
+          display_name: fullName || email.split('@')[0],
+        });
+        localStorage.setItem('auth_token', res.access_token);
+        localStorage.setItem('auth_email', res.email);
+        localStorage.setItem('auth_user_id', String(res.user_id));
+        localStorage.setItem('auth_name', fullName || email.split('@')[0]);
+        navigate('/onboarding');
+      } else {
+        const res = await apiPost<{ access_token: string; user_id: number; email: string }>('/login', {
+          email,
+          password,
+        });
+        localStorage.setItem('auth_token', res.access_token);
+        localStorage.setItem('auth_email', res.email);
+        localStorage.setItem('auth_user_id', String(res.user_id));
+        localStorage.setItem('auth_name', email.split('@')[0]);
+        navigate('/dashboard');
+      }
+    } catch (backendErr: any) {
+      console.error('Backend auth error:', backendErr);
+      setError(backendErr.message || 'Authentication failed. Please check your email and password.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleGoogleAuth = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/onboarding`
+    setError(null);
+
+    if (!isSupabaseConfigured) {
+      setError("Google Sign-In requires a verified Supabase Client Key. Please use email signup above or Continue as Guest.");
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/onboarding`
+        }
+      });
+      if (error) {
+        setError(error.message);
       }
-    });
-    if (error) {
-      setError(error.message);
+    } catch (err: any) {
+      setError(err?.message || "Google Sign-In is unavailable. Please sign in with email above.");
     }
   };
+
 
   return (
     <div className="fs-auth-page">

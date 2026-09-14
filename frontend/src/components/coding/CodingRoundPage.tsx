@@ -221,7 +221,21 @@ export function CodingRoundPage() {
 
           {/* End Interview Button */}
           <button
-            onClick={() => navigate('/results')}
+            onClick={() => {
+              const sessionData = {
+                sessionId,
+                company,
+                role,
+                level,
+                round_type: 'coding',
+                transcript: conversation.transcript,
+                code,
+              };
+              try {
+                sessionStorage.setItem('last_interview_session', JSON.stringify(sessionData));
+              } catch (e) {}
+              navigate('/results', { state: sessionData });
+            }}
             style={{
               padding: '5px 14px',
               background: 'var(--color-error, #D9534F)',
@@ -238,6 +252,7 @@ export function CodingRoundPage() {
           >
             End Interview
           </button>
+
         </div>
       </header>
 

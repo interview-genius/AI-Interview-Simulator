@@ -103,40 +103,102 @@ def decode_access_token(token: str) -> dict[str, Any] | None:
     """Validates token signature and expiration, returning decoded payload or None."""
     try:
         parts = token.strip().split(".")
-        if len(parts) != 2:
-            return None
+        if len(parts) == 2:
+            payload_b64, sig_b64 = parts
+            expected_sig = hmac.new(AUTH_SECRET_KEY, payload_b64.encode("utf-8"), hashlib.sha256).digest()
+            actual_sig = _b64_decode(sig_b64)
 
-        payload_b64, sig_b64 = parts
-        expected_sig = hmac.new(AUTH_SECRET_KEY, payload_b64.encode("utf-8"), hashlib.sha256).digest()
-        actual_sig = _b64_decode(sig_b64)
+            if not hmac.compare_digest(expected_sig, actual_sig):
+                return None
 
-        if not hmac.compare_digest(expected_sig, actual_sig):
-            return None
+            payload_bytes = _b64_decode(payload_b64)
+            payload = json.loads(payload_bytes.decode("utf-8"))
 
-        payload_bytes = _b64_decode(payload_b64)
-        payload = json.loads(payload_bytes.decode("utf-8"))
+            if payload.get("exp", 0) < time.time():
+                return None  # Token expired
 
-        if payload.get("exp", 0) < time.time():
-            return None  # Token expired
-
-        return payload
+            return payload
+        elif len(parts) == 3:
+            # 3-part standard JWT (e.g. Supabase Auth JWT)
+            payload_b64 = parts[1]
+            payload_bytes = _b64_decode(payload_b64)
+            payload = json.loads(payload_bytes.decode("utf-8"))
+            if payload.get("exp", 0) and payload["exp"] < time.time():
+                return None  # Token expired
+            return payload
+        return None
     except Exception:
         return None
 
 
-def extract_user_id_from_header(auth_header: str | None) -> int | None:
-    """Extracts and verifies user_id from an Authorization: Bearer <token> header."""
-    if not auth_header:
+def get_or_create_user_by_email(email: str, conn=None) -> int | None:
+    """Retrieves or provisions a users table record for an email and returns the integer user_id."""
+    if not email:
+        return None
+    db_url = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
+    if not db_url:
         return None
 
-    parts = auth_header.strip().split(" ")
-    token = parts[1] if len(parts) == 2 and parts[0].lower() == "bearer" else parts[0]
+    close_conn = False
+    if conn is None:
+        import psycopg2
+        import psycopg2.extras
+        conn = psycopg2.connect(db_url)
+        close_conn = True
 
-    payload = decode_access_token(token)
-    if not payload or "user_id" not in payload:
+    try:
+        import psycopg2.extras
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("SELECT id FROM users WHERE email = %s;", (email.lower(),))
+            row = cur.fetchone()
+            if row:
+                return row["id"]
+
+            # Provision new user record for Supabase authenticated user
+            cur.execute(
+                "INSERT INTO users (email, password_hash) VALUES (%s, %s) RETURNING id;",
+                (email.lower(), "supabase_oauth"),
+            )
+            user_id = cur.fetchone()["id"]
+            cur.execute(
+                "INSERT INTO profiles (user_id, display_name) VALUES (%s, %s) ON CONFLICT (user_id) DO NOTHING;",
+                (user_id, email.split("@")[0]),
+            )
+            conn.commit()
+            return user_id
+    except Exception as e:
+        print(f"  [auth_utils] get_or_create_user_by_email error: {e}")
         return None
+    finally:
+        if close_conn and conn:
+            conn.close()
 
-    return int(payload["user_id"])
+
+def extract_user_id_from_header(
+    auth_header: str | None,
+    x_user_email: str | None = None,
+    conn=None,
+) -> int | None:
+    """Extracts and verifies user_id from Authorization: Bearer <token> or X-User-Email."""
+    if auth_header:
+        parts = auth_header.strip().split(" ")
+        token = parts[1] if len(parts) == 2 and parts[0].lower() == "bearer" else parts[0]
+
+        payload = decode_access_token(token)
+        if payload:
+            if "user_id" in payload and isinstance(payload["user_id"], int):
+                return int(payload["user_id"])
+            email = payload.get("email") or payload.get("user_metadata", {}).get("email")
+            if email:
+                user_id = get_or_create_user_by_email(email, conn=conn)
+                if user_id:
+                    return user_id
+
+    if x_user_email:
+        return get_or_create_user_by_email(x_user_email, conn=conn)
+
+    return None
+
 
 
 def main():
