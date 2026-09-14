@@ -21,14 +21,39 @@ export function VoiceConversationPanel({ conversation }: VoiceConversationPanelP
 
   // Simulated Camera Stream
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
   useEffect(() => {
-    navigator.mediaDevices?.getUserMedia?.({ video: true }).then((stream) => {
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+    let isMounted = true;
+
+    navigator.mediaDevices
+      ?.getUserMedia?.({ video: true })
+      .then((stream) => {
+        if (!isMounted) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      })
+      .catch(() => {
+        // Ignore if no camera or permission denied
+      });
+
+    return () => {
+      isMounted = false;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
+          track.stop();
+        });
+        streamRef.current = null;
       }
-    }).catch(() => {
-      // Ignore if no camera
-    });
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+    };
   }, []);
 
   const getStatusColor = () => {
@@ -60,12 +85,12 @@ export function VoiceConversationPanel({ conversation }: VoiceConversationPanelP
         boxSizing: 'border-box',
       }}
     >
-      {/* Reduced Height Interviewer Indicator & Camera Area */}
+      {/* Spacious Interviewer Video & Status Area */}
       <div
         style={{
           position: 'relative',
           background: '#0E110A',
-          height: '100px',
+          height: '135px',
           flexShrink: 0,
           display: 'flex',
           alignItems: 'center',
@@ -85,11 +110,26 @@ export function VoiceConversationPanel({ conversation }: VoiceConversationPanelP
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            opacity: 0.25,
+            opacity: 0.35,
           }}
         />
 
-        {/* Overlay with Status & Speaking Orb */}
+        {/* Ambient glow behind badge */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              status === 'speaking'
+                ? 'radial-gradient(circle at center, rgba(178, 139, 106, 0.18) 0%, transparent 70%)'
+                : status === 'listening'
+                ? 'radial-gradient(circle at center, rgba(108, 122, 99, 0.18) 0%, transparent 70%)'
+                : 'transparent',
+            transition: 'background 0.4s ease',
+          }}
+        />
+
+        {/* Overlay Badge with Speaking Orb & State */}
         <div
           style={{
             position: 'relative',
@@ -97,19 +137,20 @@ export function VoiceConversationPanel({ conversation }: VoiceConversationPanelP
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            padding: '8px 16px',
-            background: 'rgba(26, 29, 22, 0.75)',
-            backdropFilter: 'blur(8px)',
-            borderRadius: '24px',
-            border: `1px solid ${status === 'speaking' || status === 'listening' ? statusColor : '#2A3022'}`,
-            transition: 'border-color 0.3s ease',
+            padding: '10px 20px',
+            background: 'rgba(22, 25, 18, 0.85)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '28px',
+            border: `1px solid ${status === 'speaking' || status === 'listening' ? statusColor : '#363E2F'}`,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+            transition: 'all 0.3s ease',
           }}
         >
           {/* Animated Status Orb */}
           <div
             style={{
-              width: '28px',
-              height: '28px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
               background: '#12150E',
               display: 'flex',
@@ -117,16 +158,16 @@ export function VoiceConversationPanel({ conversation }: VoiceConversationPanelP
               justifyContent: 'center',
               boxShadow:
                 status === 'speaking'
-                  ? '0 0 14px rgba(178, 139, 106, 0.6)'
+                  ? '0 0 16px rgba(178, 139, 106, 0.7)'
                   : status === 'listening'
-                  ? '0 0 14px rgba(108, 122, 99, 0.6)'
+                  ? '0 0 16px rgba(108, 122, 99, 0.7)'
                   : 'none',
               transition: 'box-shadow 0.3s ease',
             }}
           >
             <svg
-              width="16"
-              height="16"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke={statusColor}
@@ -144,7 +185,7 @@ export function VoiceConversationPanel({ conversation }: VoiceConversationPanelP
               color: '#FDFCF9',
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
-              fontSize: '0.75rem',
+              fontSize: '0.8rem',
             }}
           >
             {status === 'listening'
@@ -170,12 +211,12 @@ export function VoiceConversationPanel({ conversation }: VoiceConversationPanelP
         </div>
       )}
 
-      {/* Transcript Area */}
+      {/* Transcript Area - Full height with comfortable spacing */}
       <div
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '12px 16px',
+          padding: '14px 18px',
           borderBottom: '1px solid #2A3022',
           minHeight: 0,
         }}
@@ -184,7 +225,7 @@ export function VoiceConversationPanel({ conversation }: VoiceConversationPanelP
       </div>
 
       {/* Input Area */}
-      <div style={{ padding: '10px 14px', background: '#161912' }}>
+      <div style={{ padding: '12px 16px', background: '#161912' }}>
         <TypeInsteadInput onSubmit={submitTypedAnswer} disabled={busy} />
       </div>
     </section>

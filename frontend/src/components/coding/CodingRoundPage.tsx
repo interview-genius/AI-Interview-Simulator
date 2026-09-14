@@ -17,7 +17,38 @@ export function CodingRoundPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [problem, setProblem] = useState<CodingProblem | null>(null);
   const [code, setCode] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // Toggle browser native fullscreen mode
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch((err) => {
+        console.warn('Error attempting to enable fullscreen:', err);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().then(() => {
+          setIsFullscreen(false);
+        }).catch((err) => {
+          console.warn('Error attempting to exit fullscreen:', err);
+        });
+      }
+    }
+  }, []);
+
+  // Listen to fullscreen changes (e.g. if user presses Esc)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   const onSubmit = useCallback(
     async (text: string) => {
@@ -67,31 +98,36 @@ export function CodingRoundPage() {
     <main
       style={{
         height: '100vh',
+        width: '100vw',
         display: 'flex',
         flexDirection: 'column',
         background: '#12150E',
         color: '#FDFCF9',
-        padding: '16px 24px',
+        padding: '12px 16px',
         boxSizing: 'border-box',
         overflow: 'hidden',
       }}
     >
-      {/* Top Header */}
+      {/* Streamlined Edge-to-Edge Top Header */}
       <header
         style={{
-          marginBottom: '16px',
+          marginBottom: '12px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexShrink: 0,
+          background: '#1A1D16',
+          padding: '8px 16px',
+          borderRadius: '12px',
+          border: '1px solid #2A3022',
         }}
       >
-        <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <h1
             ref={headingRef}
             tabIndex={-1}
             style={{
-              fontSize: '1.35rem',
+              fontSize: '1.15rem',
               fontFamily: 'var(--font-family-heading)',
               margin: 0,
               fontWeight: 600,
@@ -100,60 +136,109 @@ export function CodingRoundPage() {
           >
             Technical Coding Interview
           </h1>
-          <p style={{ color: '#808877', fontSize: '0.85rem', margin: '2px 0 0 0' }}>
+          <span style={{ color: '#47523E' }}>|</span>
+          <p style={{ color: '#808877', fontSize: '0.82rem', margin: 0 }}>
             {company} · {role} · {level}
           </p>
         </div>
 
-        {/* Mock Timer */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            color: '#808877',
-            background: '#1A1D16',
-            padding: '6px 14px',
-            borderRadius: '20px',
-            border: '1px solid #2A3022',
-            fontFamily: 'var(--font-family-mono)',
-            fontSize: '0.95rem',
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        {/* Right Controls: Timer, Fullscreen Toggle, End Interview */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Mock Timer */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: '#B6BDAD',
+              background: '#252A20',
+              padding: '4px 12px',
+              borderRadius: '16px',
+              border: '1px solid #363E2F',
+              fontFamily: 'var(--font-family-mono)',
+              fontSize: '0.85rem',
+            }}
           >
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-          <span>45:00</span>
-        </div>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>45:00</span>
+          </div>
 
-        <button
-          onClick={() => navigate('/results')}
-          style={{
-            padding: '7px 16px',
-            background: 'var(--color-error, #D9534F)',
-            color: '#FFF',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.opacity = '0.85')}
-          onMouseOut={(e) => (e.currentTarget.style.opacity = '1')}
-        >
-          End Interview
-        </button>
+          {/* Fullscreen Toggle Button */}
+          <button
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 12px',
+              background: isFullscreen ? '#2D3525' : '#252A20',
+              color: isFullscreen ? '#4EAA78' : '#B6BDAD',
+              border: `1px solid ${isFullscreen ? '#4EAA78' : '#363E2F'}`,
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.color = '#FDFCF9';
+              e.currentTarget.style.borderColor = '#6C7A63';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.color = isFullscreen ? '#4EAA78' : '#B6BDAD';
+              e.currentTarget.style.borderColor = isFullscreen ? '#4EAA78' : '#363E2F';
+            }}
+          >
+            {isFullscreen ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                </svg>
+                <span>Exit Fullscreen</span>
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                </svg>
+                <span>Full Screen</span>
+              </>
+            )}
+          </button>
+
+          {/* End Interview Button */}
+          <button
+            onClick={() => navigate('/results')}
+            style={{
+              padding: '5px 14px',
+              background: 'var(--color-error, #D9534F)',
+              color: '#FFF',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'opacity 0.2s',
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.opacity = '0.85')}
+            onMouseOut={(e) => (e.currentTarget.style.opacity = '1')}
+          >
+            End Interview
+          </button>
+        </div>
       </header>
 
       {!problem ? (
@@ -163,33 +248,34 @@ export function CodingRoundPage() {
           </span>
         </div>
       ) : (
-        /* Balanced Two-Column Layout */
+        /* Full-Screen Two-Column Layout */
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(420px, 40%) 1fr',
-            gap: '20px',
+            gridTemplateColumns: 'minmax(420px, 38%) 1fr',
+            gap: '14px',
             flex: 1,
             minHeight: 0,
+            height: 'calc(100% - 56px)',
           }}
         >
           {/* Left Column: Interviewer Speaking Panel & Problem Statement */}
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
+              display: 'grid',
+              gridTemplateRows: '1.15fr 1fr',
+              gap: '14px',
               minHeight: 0,
               height: '100%',
             }}
           >
-            {/* Top: Compact Interviewer Speaking & Voice Panel */}
-            <div style={{ flex: '0 0 230px', minHeight: 0 }}>
+            {/* Top: Spacious Interviewer Speaking & Voice Panel */}
+            <div style={{ minHeight: 0, height: '100%' }}>
               <VoiceConversationPanel conversation={conversation} />
             </div>
 
             {/* Bottom: Generous, fully visible Problem Statement Panel */}
-            <div style={{ flex: 1, minHeight: 0 }}>
+            <div style={{ minHeight: 0, height: '100%' }}>
               <ProblemStatementPanel problem={problem} />
             </div>
           </div>
