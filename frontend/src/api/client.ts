@@ -43,7 +43,8 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
 export async function apiPost<TResponse>(path: string, body: unknown): Promise<TResponse> {
   const headers = await getAuthHeaders();
-  const res = await fetch(`/api${path}`, {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+  const res = await fetch(`${API_BASE_URL}/api${path}`, {
     method: 'POST',
     headers,
     body: JSON.stringify(body),
