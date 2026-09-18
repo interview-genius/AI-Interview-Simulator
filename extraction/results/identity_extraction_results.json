@@ -8,7 +8,7 @@
       "year": 2024,
       "outcome": "selected"
     },
-    "raw_model_output": "{\"company\": \"Google\", \"role\": \"SWE New Grad\", \"year\": 2024, \"outcome\": \"selected\"}"
+    "raw_model_output": "{\n  \"company\": \"Google\",\n  \"role\": \"SWE New Grad\",\n  \"year\": 2024,\n  \"outcome\": \"selected\"\n}"
   },
   {
     "raw_report_id": 6,
@@ -30,7 +30,7 @@
       "year": null,
       "outcome": "unknown"
     },
-    "raw_model_output": "{\n  \"company\": \"Google\",\n  \"role\": \"Early Career Campus\",\n  \"year\": null,\n  \"outcome\": \"unknown\"\n}"
+    "raw_model_output": "{\"company\": \"Google\", \"role\": \"Early Career Campus\", \"year\": null, \"outcome\": \"unknown\"}"
   },
   {
     "raw_report_id": 8,
@@ -63,7 +63,7 @@
       "year": null,
       "outcome": "unknown"
     },
-    "raw_model_output": "{\"company\": \"Amazon\", \"role\": null, \"year\": null, \"outcome\": \"unknown\"}"
+    "raw_model_output": "{\n  \"company\": \"Amazon\",\n  \"role\": null,\n  \"year\": null,\n  \"outcome\": \"unknown\"\n}"
   },
   {
     "raw_report_id": 11,
@@ -96,7 +96,7 @@
       "year": null,
       "outcome": "unknown"
     },
-    "raw_model_output": "{\n  \"company\": \"Goldman Sachs\",\n  \"role\": \"quant\",\n  \"year\": null,\n  \"outcome\": \"unknown\"\n}"
+    "raw_model_output": "{\"company\": \"Goldman Sachs\", \"role\": \"quant\", \"year\": null, \"outcome\": \"unknown\"}"
   },
   {
     "raw_report_id": 14,
@@ -129,7 +129,7 @@
       "year": null,
       "outcome": "rejected"
     },
-    "raw_model_output": "{\"company\": null, \"role\": \"swe internship\", \"year\": null, \"outcome\": \"rejected\"}"
+    "raw_model_output": "{\n  \"company\": null,\n  \"role\": \"swe internship\",\n  \"year\": null,\n  \"outcome\": \"rejected\"\n}"
   },
   {
     "raw_report_id": 17,
@@ -140,7 +140,7 @@
       "year": null,
       "outcome": "selected"
     },
-    "raw_model_output": "{\n  \"company\": null,\n  \"role\": \"Software Developer 6 month internship position\",\n  \"year\": null,\n  \"outcome\": \"selected\"\n}"
+    "raw_model_output": "{\"company\": null, \"role\": \"Software Developer 6 month internship position\", \"year\": null, \"outcome\": \"selected\"}"
   },
   {
     "raw_report_id": 18,
@@ -157,11 +157,11 @@
     "raw_report_id": 19,
     "source_url": "https://www.reddit.com/r/csMajors/comments/sovvjn/two_dream_offers_interview_experience/",
     "extraction": {
-      "company": "Palantir",
+      "company": null,
       "role": "swe intern",
       "year": null,
       "outcome": "selected"
     },
-    "raw_model_output": "{\n  \"company\": \"Palantir\",\n  \"role\": \"swe intern\",\n  \"year\": null,\n  \"outcome\": \"selected\"\n}"
+    "raw_model_output": "{\n  \"company\": null,\n  \"role\": \"swe intern\",\n  \"year\": null,\n  \"outcome\": \"selected\"\n}"
   }
 ]
