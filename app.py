@@ -26,7 +26,10 @@ app = FastAPI(title="Interview Simulator")
 # real allowed-origins list before any non-local deployment.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://ai-interview-simulator-1-w3m2.onrender.com/",  # replace with your real frontend URL
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
