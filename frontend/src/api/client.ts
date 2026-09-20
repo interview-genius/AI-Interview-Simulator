@@ -60,7 +60,8 @@ export async function apiPost<TResponse>(path: string, body: unknown): Promise<T
 
 export async function apiGet<TResponse>(path: string): Promise<TResponse> {
   const headers = await getAuthHeaders();
-  const res = await fetch(`/api${path}`, {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+  const res = await fetch(`${API_BASE_URL}/api${path}`, {
     method: 'GET',
     headers,
   });
@@ -72,4 +73,3 @@ export async function apiGet<TResponse>(path: string): Promise<TResponse> {
 
   return res.json() as Promise<TResponse>;
 }
-
