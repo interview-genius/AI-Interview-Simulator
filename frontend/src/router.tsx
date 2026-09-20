@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { CodingRoundPage } from './components/coding/CodingRoundPage';
 import { MLRoundPage } from './components/ml/MLRoundPage';
+import { TechnicalRoundPage } from './components/technical/TechnicalRoundPage';
+import { HRRoundPage } from './components/hr/HRRoundPage';
 import { DashboardPage } from './components/dashboard/DashboardPage';
 import { LandingPage } from './components/setup/LandingPage';
 import { AuthPage } from './components/setup/AuthPage';
@@ -20,6 +22,8 @@ export function AppRouter() {
       <Route path="/prep" element={<PrepScreen />} />
       <Route path="/coding" element={<CodingRoundPage />} />
       <Route path="/ml" element={<MLRoundPage />} />
+      <Route path="/technical" element={<TechnicalRoundPage />} />
+      <Route path="/hr" element={<HRRoundPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/interviews" element={<InterviewHistoryPage />} />
       <Route path="/results" element={<FeedbackPage />} />
@@ -27,3 +31,4 @@ export function AppRouter() {
     </Routes>
   );
 }
+

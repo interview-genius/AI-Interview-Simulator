@@ -335,10 +335,23 @@ def start_technical_session(
     opening_prompt = [{"role": "user", "content": "(Start the technical discussion round now.)"}]
 
     turn = call_llm(system_msg, opening_prompt)
-    if turn is not None:
-        session.history.append({"role": "assistant", "content": turn.interviewer_response})
-        if turn.advance_phase and session.phase_index < len(session.active_phases) - 1:
-            session.phase_index += 1
+    if turn is None:
+        phase = current_phase(session)
+        fallback_msg = (
+            f"Hello and welcome! I'll be conducting your technical discussion round for the {session.role} position at {session.company}. "
+            f"We'll cover core computer science domains. To start with {phase.replace('_', ' ')}: "
+            "Could you explain the fundamental differences between processes and threads, and how the operating system handles context switching between them?"
+        )
+        turn = ConversationTurn(
+            interviewer_response=fallback_msg,
+            cited_report_ids=session.retrieved_report_ids,
+            grounded=True,
+            advance_phase=False,
+        )
+
+    session.history.append({"role": "assistant", "content": turn.interviewer_response})
+    if turn.advance_phase and session.phase_index < len(session.active_phases) - 1:
+        session.phase_index += 1
 
     SESSIONS[session.session_id] = session
     SESSION_CONTEXT[session.session_id] = {"reports": reports, "resume_data": resume_data}
@@ -406,7 +419,32 @@ def advance_technical_conversation(
 
     turn = call_llm(system_msg, session.history)
     if turn is None:
-        return None
+        if is_completed:
+            turn = ConversationTurn(
+                interviewer_response=f"Thank you for your time today! That wraps up our technical discussion for {session.company}. Your performance has been recorded, and we will analyze your results.",
+                cited_report_ids=[],
+                grounded=True,
+                advance_phase=True,
+                is_completed=True,
+            )
+        else:
+            fallback_questions = {
+                "core_cs_concepts": "Could you walk me through the trade-offs between array-based and linked-list data structures in terms of cache locality and access patterns?",
+                "dbms_and_storage": "Let's discuss database indexes. How does a B+ Tree index improve query performance, and what are the trade-offs on writes?",
+                "os_and_concurrency": "Could you explain what a deadlock is, the four necessary Coffman conditions, and strategies to prevent or recover from deadlocks?",
+                "networks_and_protocols": "How does TCP ensure reliable data transmission compared to UDP, and what happens during the TCP three-way handshake?",
+                "oop_and_system_design": "Could you explain the Single Responsibility and Dependency Inversion principles with a real-world software design scenario?",
+            }
+            fallback_text = fallback_questions.get(
+                active_phase,
+                f"Could you elaborate further on how you would design and optimize this aspect for {session.company} at scale?"
+            )
+            turn = ConversationTurn(
+                interviewer_response=fallback_text,
+                cited_report_ids=session.retrieved_report_ids,
+                grounded=True,
+                advance_phase=decision.next_action in ["new_topic", "wrap_topic"],
+            )
 
     # Advance phase when adaptive engine decides on new_topic / wrap_topic
     advance = decision.next_action in ["new_topic", "wrap_topic"]

@@ -9,6 +9,14 @@ endpoints from the same origin.
 Run with: uvicorn app:app --reload --port 8000
 """
 
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,6 +26,7 @@ from interview_modes import config_router, technical_discussion_router, hr_round
 from interview_engine.coding_intelligence import router as coding_intel_router
 from analytics.dashboard_api import router as dashboard_router
 from interview_engine.tts_api import router as tts_router
+from interview_engine.stt_api import router as stt_router
 from auth.api import router as auth_router
 
 app = FastAPI(title="Interview Simulator")
@@ -39,5 +48,7 @@ app.include_router(hr_round_router, prefix="/api")
 app.include_router(coding_intel_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
 app.include_router(tts_router, prefix="/api")
+app.include_router(stt_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
+
 

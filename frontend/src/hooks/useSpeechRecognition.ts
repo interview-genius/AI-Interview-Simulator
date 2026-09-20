@@ -9,33 +9,38 @@ interface UseSpeechRecognitionResult {
   isListening: boolean;
   isSupported: boolean;
   interimText: string;
+  error: string | null;
   start: () => void;
   stop: () => void;
+  finalizeUtterance: () => void;
+  resetInterim: () => void;
 }
 
-/**
- * Wraps the browser's native SpeechRecognition. Endpointing is a simple
- * silence-timeout: after `silenceTimeoutMs` with no new interim result, the
- * accumulated text is treated as one finished utterance. `isSupported` is
- * surfaced explicitly (not swallowed) so the UI can visibly fall back to
- * typed input on browsers without support, rather than silently doing
- * nothing when a user taps the mic.
- */
 export function useSpeechRecognition({
   onFinalResult,
-  silenceTimeoutMs = 1500,
+  silenceTimeoutMs = 5000,
 }: UseSpeechRecognitionOptions): UseSpeechRecognitionResult {
   const [isListening, setIsListening] = useState(false);
   const [interimText, setInterimText] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const silenceTimerRef = useRef<number | null>(null);
+  const restartTimerRef = useRef<number | null>(null);
   const accumulatedRef = useRef('');
-  const manualStopRef = useRef(false);
+  const currentInterimRef = useRef('');
+  const latestTranscriptRef = useRef('');
+  const shouldBeListeningRef = useRef(false);
+  const onFinalResultRef = useRef(onFinalResult);
+
+  // Keep latest callback ref to prevent stale closures
+  useEffect(() => {
+    onFinalResultRef.current = onFinalResult;
+  }, [onFinalResult]);
 
   const RecognitionCtor =
     typeof window !== 'undefined'
-      ? window.SpeechRecognition ?? window.webkitSpeechRecognition
+      ? (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
       : undefined;
   const isSupported = Boolean(RecognitionCtor);
 
@@ -46,74 +51,190 @@ export function useSpeechRecognition({
     }
   }, []);
 
+  const clearRestartTimer = useCallback(() => {
+    if (restartTimerRef.current !== null) {
+      window.clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = null;
+    }
+  }, []);
+
   const finalizeUtterance = useCallback(() => {
-    const text = accumulatedRef.current.trim();
+    clearSilenceTimer();
+    const text = latestTranscriptRef.current.trim();
     accumulatedRef.current = '';
+    currentInterimRef.current = '';
+    latestTranscriptRef.current = '';
     setInterimText('');
     if (text) {
-      onFinalResult(text);
+      onFinalResultRef.current(text);
     }
-  }, [onFinalResult]);
+  }, [clearSilenceTimer]);
 
-  const start = useCallback(() => {
-    if (!RecognitionCtor || isListening) return;
+  const resetInterim = useCallback(() => {
+    clearSilenceTimer();
+    accumulatedRef.current = '';
+    currentInterimRef.current = '';
+    latestTranscriptRef.current = '';
+    setInterimText('');
+  }, [clearSilenceTimer]);
 
-    manualStopRef.current = false;
-    const recognition = new RecognitionCtor();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
+  const createAndStartRecognition = useCallback(() => {
+    if (!RecognitionCtor || !shouldBeListeningRef.current) return;
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) {
-          accumulatedRef.current += result[0].transcript;
-        } else {
-          interim += result[0].transcript;
+    // Clean up any existing instance
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort();
+      } catch (e) {}
+      recognitionRef.current = null;
+    }
+
+    try {
+      const recognition = new RecognitionCtor();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        if (shouldBeListeningRef.current) {
+          setIsListening(true);
+          setError(null);
         }
-      }
-      setInterimText(accumulatedRef.current + interim);
+      };
 
-      clearSilenceTimer();
-      silenceTimerRef.current = window.setTimeout(finalizeUtterance, silenceTimeoutMs);
-    };
+      recognition.onresult = (event: any) => {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          const transcriptChunk = result[0].transcript;
+          if (result.isFinal) {
+            accumulatedRef.current = (accumulatedRef.current + ' ' + transcriptChunk).trim();
+            currentInterimRef.current = '';
+          } else {
+            currentInterimRef.current = transcriptChunk;
+          }
+        }
 
-    // "no-speech" fires routinely during normal pauses -- not a real
-    // failure. The silence timer, not this handler, ends a turn.
-    recognition.onerror = () => {};
-    recognition.onend = () => {
-      if (manualStopRef.current) {
-        setIsListening(false);
-      } else {
-        try {
-          recognition.start();
-        } catch (e) {
+        const fullText = (accumulatedRef.current + ' ' + currentInterimRef.current).trim();
+        latestTranscriptRef.current = fullText;
+        setInterimText(fullText);
+
+        clearSilenceTimer();
+        if (fullText) {
+          // Generous silence timeout (5s) so the user is never cut off while thinking/pausing
+          silenceTimerRef.current = window.setTimeout(() => {
+            finalizeUtterance();
+          }, silenceTimeoutMs);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        const errType = event.error;
+        console.warn('[SpeechRecognition error]:', errType);
+
+        if (errType === 'no-speech') {
+          // Normal timeout when candidate doesn't speak. Keep accumulated speech intact!
+          return;
+        }
+
+        if (errType === 'aborted') {
+          return;
+        }
+
+        if (errType === 'not-allowed') {
+          setError('Microphone permission blocked. Please allow microphone access in browser.');
+          shouldBeListeningRef.current = false;
+          setIsListening(false);
+          return;
+        }
+
+        if (errType === 'audio-capture') {
+          setError('Microphone not detected or busy. You can use Whisper recording or type below.');
+          shouldBeListeningRef.current = false;
+          setIsListening(false);
+          return;
+        }
+
+        if (errType === 'network' || errType === 'service-not-allowed') {
+          setError('Browser speech service network issue. You can use Whisper recording or type below.');
+          return;
+        }
+      };
+
+      recognition.onend = () => {
+        if (shouldBeListeningRef.current) {
+          clearRestartTimer();
+          // Spawn a fresh instance while keeping accumulatedRef.current intact!
+          restartTimerRef.current = window.setTimeout(() => {
+            if (shouldBeListeningRef.current) {
+              createAndStartRecognition();
+            } else {
+              setIsListening(false);
+            }
+          }, 150);
+        } else {
           setIsListening(false);
         }
-      }
-    };
+      };
 
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
-  }, [RecognitionCtor, isListening, clearSilenceTimer, finalizeUtterance, silenceTimeoutMs]);
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err: any) {
+      console.warn('Failed to start SpeechRecognition:', err);
+      if (shouldBeListeningRef.current) {
+        clearRestartTimer();
+        restartTimerRef.current = window.setTimeout(() => {
+          if (shouldBeListeningRef.current) {
+            createAndStartRecognition();
+          }
+        }, 500);
+      } else {
+        setIsListening(false);
+      }
+    }
+  }, [RecognitionCtor, clearRestartTimer, clearSilenceTimer, finalizeUtterance, silenceTimeoutMs]);
+
+  const start = useCallback(() => {
+    shouldBeListeningRef.current = true;
+    clearRestartTimer();
+    createAndStartRecognition();
+  }, [clearRestartTimer, createAndStartRecognition]);
 
   const stop = useCallback(() => {
-    manualStopRef.current = true;
+    shouldBeListeningRef.current = false;
+    clearRestartTimer();
     clearSilenceTimer();
-    recognitionRef.current?.stop();
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.stop();
+      } catch (e) {}
+      recognitionRef.current = null;
+    }
     setIsListening(false);
-  }, [clearSilenceTimer]);
+  }, [clearRestartTimer, clearSilenceTimer]);
 
   useEffect(() => {
     return () => {
-      manualStopRef.current = true;
-      clearSilenceTimer();
-      recognitionRef.current?.stop();
+      stop();
     };
-  }, [clearSilenceTimer]);
+  }, [stop]);
 
-  return { isListening, isSupported, interimText, start, stop };
+  return {
+    isListening,
+    isSupported,
+    interimText,
+    error,
+    start,
+    stop,
+    finalizeUtterance,
+    resetInterim,
+  };
 }

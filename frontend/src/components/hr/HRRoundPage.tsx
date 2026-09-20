@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { startMLSession, sendMLTurn } from '../../api/mlInterview';
+import { startHRSession, sendHRTurn } from '../../api/hrInterview';
 import { useVoiceConversation } from '../../hooks/useVoiceConversation';
 import { ConversationalInterviewLayout } from '../voice/ConversationalInterviewLayout';
 
-export function MLRoundPage() {
+export function HRRoundPage() {
   const [searchParams] = useSearchParams();
   const company = searchParams.get('company') ?? 'Google';
-  const role = searchParams.get('role') ?? 'ML Engineer';
-  const level = searchParams.get('level') ?? 'New Grad';
+  const role = searchParams.get('role') ?? 'Software Engineer';
+  const level = searchParams.get('level') ?? 'Mid-Level';
   const resumeIdParam = searchParams.get('resume_id');
   const resumeId = resumeIdParam ? Number(resumeIdParam) : undefined;
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ export function MLRoundPage() {
   const onSubmit = useCallback(
     async (text: string) => {
       if (!sessionId) throw new Error('No active session');
-      const turn = await sendMLTurn(sessionId, text);
+      const turn = await sendHRTurn(sessionId, text);
       return turn.interviewer_response;
     },
     [sessionId]
@@ -59,14 +59,15 @@ export function MLRoundPage() {
 
   useEffect(() => {
     let cancelled = false;
-    startMLSession({ company, role, level, resume_id: resumeId }).then((res) => {
+    startHRSession({ company, role, level, resume_id: resumeId }).then((res) => {
       if (cancelled) return;
       setSessionId(res.session_id);
       setPhase(res.phase);
       conversation.announceOpening(res.opening_question);
     }).catch((err) => {
-      console.error('Failed to start ML session:', err);
+      console.error('Failed to start HR round session:', err);
     });
+
     return () => {
       cancelled = true;
     };
@@ -79,7 +80,7 @@ export function MLRoundPage() {
       company,
       role,
       level,
-      round_type: 'ml',
+      round_type: 'hr',
       transcript: conversation.transcript,
     };
     try {
@@ -94,7 +95,7 @@ export function MLRoundPage() {
       company={company}
       role={role}
       level={level}
-      roundTitle="ML System Design Round"
+      roundTitle="HR & Behavioral Round"
       phase={phase}
       onEndInterview={handleEndInterview}
       isFullscreen={isFullscreen}
@@ -102,4 +103,3 @@ export function MLRoundPage() {
     />
   );
 }
-

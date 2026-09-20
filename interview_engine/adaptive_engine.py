@@ -247,18 +247,26 @@ def evaluate_and_decide(
     pending_signal = state.pending_external_signal
     state.pending_external_signal = None  # Consume signal
 
-    is_silent = "[SILENCE]" in candidate_answer
+    is_silent = "[SILENCE]" in candidate_answer or not candidate_answer.strip()
 
     if is_silent:
         depth = 1
         confidence = 1
+        heuristic_depth = 1
+        heuristic_conf = 1
         should_interrupt = False
         should_follow_up = True
         next_action = "follow_up"
-        reasoning = "Candidate was silent. Triggering proactive prompt."
+        reasoning = "Candidate was silent or provided an empty response. Triggering proactive prompt."
     else:
         heuristic_depth = compute_heuristic_depth(candidate_answer)
         heuristic_conf = compute_heuristic_confidence(candidate_answer)
+        depth = heuristic_depth
+        confidence = heuristic_conf
+        should_interrupt = False
+        should_follow_up = (depth <= 2 or confidence <= 2) and topic_state.follow_ups_count < 2
+        next_action = "follow_up" if should_follow_up else "new_topic"
+        reasoning = f"Heuristic evaluation: depth={depth}/5, confidence={confidence}/5."
 
     system_prompt = """You are an expert interviewer evaluating a candidate's answer to decide the next conversational step.
 Return a JSON object with:
@@ -280,7 +288,8 @@ DECISION RULES:
    - Otherwise: next_action="new_topic".
 """
 
-    user_prompt = f"""Interview Type: {interview_type}
+    if not is_silent:
+        user_prompt = f"""Interview Type: {interview_type}
 Current Topic: {topic}
 Prior Follow-ups on this Topic: {topic_state.follow_ups_count}
 Candidate Latest Answer:
@@ -289,8 +298,6 @@ Candidate Latest Answer:
 Heuristic Depth Hint: {heuristic_depth}/5
 Heuristic Confidence Hint: {heuristic_conf}/5
 """
-
-    if not is_silent:
         llm_result = call_llm_json(system_prompt, user_prompt)
 
         if llm_result:
@@ -349,5 +356,8 @@ Heuristic Confidence Hint: {heuristic_conf}/5
         confidence_score=confidence,
     )
 
-    print(f"  [Adaptive Engine] session={session_id[:8]} topic='{topic}' | depth={depth}/5 conf={confidence}/5 | action={next_action} interrupt={should_interrupt} | {reasoning}")
+    try:
+        print(f"  [Adaptive Engine] session={session_id[:8]} topic='{topic}' | depth={depth}/5 conf={confidence}/5 | action={next_action} interrupt={should_interrupt} | {reasoning}")
+    except Exception:
+        pass
     return decision

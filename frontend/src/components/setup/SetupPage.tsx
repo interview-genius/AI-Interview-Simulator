@@ -18,20 +18,47 @@ export function SetupPage() {
   const [customCompany, setCustomCompany] = useState('');
   const [role, setRole] = useState('Software Engineer');
   const [level, setLevel] = useState('Mid-Level');
-  const [roundType, setRoundType] = useState<'coding' | 'ml'>('coding');
+  const [roundType, setRoundType] = useState<'coding' | 'ml' | 'technical' | 'hr'>('coding');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const handleNext = async (e: React.FormEvent) => {
     e.preventDefault();
     const selectedCompany = company || customCompany || 'Google';
+    let resumeId: number | undefined;
+
+    if (resumeFile) {
+      setUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('file', resumeFile);
+        const res = await fetch('/api/resumes/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          resumeId = data.resume_id;
+        }
+      } catch (err) {
+        console.warn('Resume upload failed, continuing without resume:', err);
+      } finally {
+        setUploading(false);
+      }
+    }
+
     const params = new URLSearchParams({
       company: selectedCompany,
       role,
       level,
-      mode: roundType
+      mode: roundType,
     });
+    if (resumeId) {
+      params.set('resume_id', String(resumeId));
+    }
     navigate(`/prep?${params.toString()}`);
   };
+
 
   return (
     <div className="fs-setup">
@@ -107,21 +134,68 @@ export function SetupPage() {
                 className={`fs-setup__mode-card ${roundType === 'coding' ? 'active' : ''}`}
                 onClick={() => setRoundType('coding')}
               >
-                <div className="fs-setup__mode-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+                <div className="fs-setup__mode-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="16 18 22 12 16 6" />
+                    <polyline points="8 6 2 12 8 18" />
+                  </svg>
+                </div>
                 <div>
                   <div className="fs-setup__mode-title">Technical Coding</div>
-                  <div className="fs-setup__mode-desc">Data structures, algorithms, and system design</div>
+                  <div className="fs-setup__mode-desc">Data structures, algorithms, and live code implementation</div>
                 </div>
               </button>
+
               <button
                 type="button"
                 className={`fs-setup__mode-card ${roundType === 'ml' ? 'active' : ''}`}
                 onClick={() => setRoundType('ml')}
               >
-                <div className="fs-setup__mode-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 22 12 12 22 2 12 12 2"/></svg></div>
+                <div className="fs-setup__mode-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 22 12 12 22 2 12 12 2" />
+                  </svg>
+                </div>
                 <div>
                   <div className="fs-setup__mode-title">Machine Learning</div>
-                  <div className="fs-setup__mode-desc">ML concepts, model design, and optimization</div>
+                  <div className="fs-setup__mode-desc">ML concepts, model architectures, and data pipelines</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`fs-setup__mode-card ${roundType === 'technical' ? 'active' : ''}`}
+                onClick={() => setRoundType('technical')}
+              >
+                <div className="fs-setup__mode-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="fs-setup__mode-title">Technical Discussion</div>
+                  <div className="fs-setup__mode-desc">Core CS: DBMS, OS, Networks, Concurrency & Architecture</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`fs-setup__mode-card ${roundType === 'hr' ? 'active' : ''}`}
+                onClick={() => setRoundType('hr')}
+              >
+                <div className="fs-setup__mode-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="fs-setup__mode-title">HR & Behavioral</div>
+                  <div className="fs-setup__mode-desc">Resume deep-dive, STAR format, leadership & culture fit</div>
                 </div>
               </button>
             </div>
@@ -151,10 +225,11 @@ export function SetupPage() {
           </div>
 
           {/* Submit */}
-          <button type="submit" className="fs-setup__submit">
-            Continue to Preparation
+          <button type="submit" disabled={uploading} className="fs-setup__submit">
+            {uploading ? 'Processing resume...' : 'Continue to Preparation'}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
+
         </form>
       </div>
     </div>
