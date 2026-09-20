@@ -1,44 +1,62 @@
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useSpeechRecognition } from './useSpeechRecognition';
 import { useSpeechSynthesis } from './useSpeechSynthesis';
+import { useAudioRecorder } from './useAudioRecorder';
 import type { TranscriptEntry } from '../types/interview';
 
-export type ConversationStatus = 'idle' | 'listening' | 'processing' | 'speaking';
+export type ConversationStatus = 'idle' | 'listening' | 'recording' | 'processing' | 'speaking';
 
 interface UseVoiceConversationOptions {
   onSubmit: (text: string) => Promise<string>;
+  stream?: MediaStream | null;
 }
 
 interface UseVoiceConversationResult {
   status: ConversationStatus;
   transcript: TranscriptEntry[];
   interimText: string;
+  isListening: boolean;
+  isRecordingAudio: boolean;
+  isTranscribingAudio: boolean;
   isSpeechSupported: boolean;
+  audioLevel: number;
   error: string | null;
   submitTypedAnswer: (text: string) => void;
+  finalizeSpeech: () => void;
+  resetInterim: () => void;
   announceOpening: (text: string) => void;
+  startListening: () => void;
+  stopListening: () => void;
+  startAudioRecording: () => Promise<boolean>;
+  stopAudioRecording: () => Promise<void>;
+  cancelTTS: () => void;
 }
 
 export function useVoiceConversation({
   onSubmit,
+  stream,
 }: UseVoiceConversationOptions): UseVoiceConversationResult {
   const [status, setStatus] = useState<ConversationStatus>('idle');
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [turnError, setTurnError] = useState<string | null>(null);
 
-  const { speak, isSupported: ttsSupported, isSpeaking } = useSpeechSynthesis();
+  const { speak, cancel: cancelTTS, isSupported: ttsSupported, isSpeaking } = useSpeechSynthesis();
 
   const processCandidateText = useCallback(
     async (text: string) => {
-      setError(null);
-      setTranscript((prev) => [...prev, { speaker: 'candidate', text }]);
+      const trimmed = text.trim();
+      if (!trimmed) return;
+
+      setTurnError(null);
+      setTranscript((prev) => [...prev, { speaker: 'candidate', text: trimmed }]);
       setStatus('processing');
 
       let reply: string;
       try {
-        reply = await onSubmit(text);
-      } catch {
-        setError('Something went wrong reaching the interviewer -- please try again.');
+        reply = await onSubmit(trimmed);
+      } catch (err: any) {
+        console.error('Error in onSubmit turn:', err);
+        setTurnError('Failed to receive response from interviewer. Please try again or type below.');
         setStatus('idle');
         return;
       }
@@ -46,76 +64,135 @@ export function useVoiceConversation({
       setTranscript((prev) => [...prev, { speaker: 'interviewer', text: reply }]);
       setStatus('speaking');
       speak(reply, () => {
-        setStatus('idle');
+        setStatus('listening');
       });
     },
     [onSubmit, speak]
   );
 
-  const { isSupported: sttSupported, interimText, start, stop } =
-    useSpeechRecognition({ onFinalResult: processCandidateText, silenceTimeoutMs: 8000 });
+  const {
+    isListening,
+    isSupported: sttSupported,
+    interimText,
+    error: recognitionError,
+    start: startSTT,
+    stop: stopSTT,
+    finalizeUtterance,
+    resetInterim,
+  } = useSpeechRecognition({
+    onFinalResult: processCandidateText,
+    silenceTimeoutMs: 5000,
+  });
 
-  // Auto-manage listening state
+  const {
+    isRecording: isRecordingAudio,
+    isTranscribing: isTranscribingAudio,
+    startRecording,
+    stopAndTranscribe,
+    cancelRecording,
+    audioLevel,
+  } = useAudioRecorder({
+    stream,
+    onTranscriptionComplete: (text) => {
+      if (text) {
+        processCandidateText(text);
+      }
+    },
+  });
+
+  // State-driven SpeechRecognition management
   useEffect(() => {
-    if (status === 'idle') {
-      setStatus('listening');
-      start();
-    } else if (status === 'processing' || status === 'speaking') {
-      stop();
+    if (status === 'listening') {
+      startSTT();
+    } else if (status === 'processing' || status === 'speaking' || status === 'recording') {
+      stopSTT();
     }
-  }, [status, start, stop]);
+  }, [status, startSTT, stopSTT]);
 
-  // When TTS stops, if we were speaking, go back to idle (which triggers listening)
+  // When TTS stops speaking, automatically transition to listening
   useEffect(() => {
     if (status === 'speaking' && !isSpeaking) {
-      setStatus('idle');
+      setStatus('listening');
     }
   }, [isSpeaking, status]);
 
-  const proactiveSilenceTimerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (status === 'listening') {
-      const resetTimer = () => {
-        if (proactiveSilenceTimerRef.current) window.clearTimeout(proactiveSilenceTimerRef.current);
-        proactiveSilenceTimerRef.current = window.setTimeout(() => {
-          stop();
-          void processCandidateText('[SILENCE]');
-        }, 15000); // 15 seconds of silence
-      };
-
-      resetTimer();
-
-      return () => {
-        if (proactiveSilenceTimerRef.current) window.clearTimeout(proactiveSilenceTimerRef.current);
-      };
-    }
-  }, [status, interimText, stop, processCandidateText]);
-
   const submitTypedAnswer = useCallback(
     (text: string) => {
-      stop();
+      stopSTT();
+      cancelRecording();
+      cancelTTS();
+      resetInterim();
       void processCandidateText(text);
     },
-    [stop, processCandidateText]
+    [stopSTT, cancelRecording, cancelTTS, resetInterim, processCandidateText]
   );
+
+  const finalizeSpeech = useCallback(() => {
+    finalizeUtterance();
+  }, [finalizeUtterance]);
+
+  const startAudioRecording = useCallback(async (): Promise<boolean> => {
+    cancelTTS();
+    stopSTT();
+    setStatus('recording');
+    const started = await startRecording();
+    if (!started) {
+      setStatus('listening');
+    }
+    return started;
+  }, [cancelTTS, stopSTT, startRecording]);
+
+  const stopAudioRecording = useCallback(async () => {
+    setStatus('processing');
+    const transcribedText = await stopAndTranscribe();
+    if (!transcribedText) {
+      setStatus('listening');
+    }
+  }, [stopAndTranscribe]);
 
   const announceOpening = useCallback(
     (text: string) => {
       setTranscript((prev) => [...prev, { speaker: 'interviewer', text }]);
       setStatus('speaking');
-      speak(text, () => setStatus('idle'));
+      speak(text, () => {
+        setStatus('listening');
+      });
     },
     [speak]
   );
+
+  const startListening = useCallback(() => {
+    cancelTTS();
+    setStatus('listening');
+    startSTT();
+  }, [cancelTTS, startSTT]);
+
+  const stopListening = useCallback(() => {
+    stopSTT();
+    cancelRecording();
+    setStatus('idle');
+  }, [stopSTT, cancelRecording]);
+
+  const activeError = turnError || recognitionError;
 
   return {
     status,
     transcript,
     interimText,
+    isListening,
+    isRecordingAudio,
+    isTranscribingAudio,
     isSpeechSupported: sttSupported && ttsSupported,
-    error,
+    audioLevel,
+    error: activeError,
     submitTypedAnswer,
+    finalizeSpeech,
+    resetInterim,
     announceOpening,
+    startListening,
+    stopListening,
+    startAudioRecording,
+    stopAudioRecording,
+    cancelTTS,
   };
 }

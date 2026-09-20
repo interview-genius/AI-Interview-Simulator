@@ -337,10 +337,22 @@ def start_hr_session(
     opening_prompt = [{"role": "user", "content": "(Start the HR / behavioral interview round now.)"}]
 
     turn = call_llm(system_msg, opening_prompt)
-    if turn is not None:
-        session.history.append({"role": "assistant", "content": turn.interviewer_response})
-        if turn.advance_phase and session.phase_index < len(session.active_phases) - 1:
-            session.phase_index += 1
+    if turn is None:
+        phase = current_phase(session)
+        fallback_msg = (
+            f"Hello! Welcome to your HR and behavioral round for {session.company} ({session.role}). "
+            "To kick things off, could you briefly introduce yourself and highlight the key experiences and technical projects you're most proud of?"
+        )
+        turn = ConversationTurn(
+            interviewer_response=fallback_msg,
+            cited_report_ids=[],
+            grounded=True,
+            advance_phase=False,
+        )
+
+    session.history.append({"role": "assistant", "content": turn.interviewer_response})
+    if turn.advance_phase and session.phase_index < len(session.active_phases) - 1:
+        session.phase_index += 1
 
     SESSIONS[session.session_id] = session
     SESSION_CONTEXT[session.session_id] = {"resume_data": resume_data}
@@ -407,7 +419,32 @@ def advance_hr_conversation(
 
     turn = call_llm(system_msg, session.history)
     if turn is None:
-        return None
+        if is_completed:
+            turn = ConversationTurn(
+                interviewer_response=f"Thank you for sharing your journey and experiences with us today. That concludes our HR and behavioral interview for {session.company}. Your feedback has been calculated.",
+                cited_report_ids=[],
+                grounded=True,
+                advance_phase=True,
+                is_completed=True,
+            )
+        else:
+            fallback_questions = {
+                "introduction": "Could you walk me through the key projects and technical milestones in your journey?",
+                "resume_experience_dive": "Can you describe a challenging technical obstacle you faced in one of your recent projects and how you resolved it using the STAR format?",
+                "leadership_and_teamwork": "Tell me about a time when you had to collaborate closely with a team or resolve a disagreement on technical direction.",
+                "company_motivation": f"What specific initiatives or culture aspects attract you to {session.company} for this {session.role} role?",
+                "situational_challenges": "How do you prioritize competing deadlines when multiple critical tasks arise simultaneously?",
+            }
+            fallback_text = fallback_questions.get(
+                active_phase,
+                "Could you provide a specific example illustrating that situation using Situation, Task, Action, and Result?"
+            )
+            turn = ConversationTurn(
+                interviewer_response=fallback_text,
+                cited_report_ids=[],
+                grounded=True,
+                advance_phase=decision.next_action in ["new_topic", "wrap_topic"],
+            )
 
     # Advance phase when adaptive engine decides on new_topic / wrap_topic
     advance = decision.next_action in ["new_topic", "wrap_topic"]

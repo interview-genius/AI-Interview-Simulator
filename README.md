@@ -73,16 +73,18 @@
 ├── resume_intelligence/            # Resume parsing, skill extraction & RAG
 ├── frontend/                       # React 19 + TypeScript SPA
 │   ├── src/
-│   │   ├── api/                    # API client, Supabase config, dashboard & feedback callers
+│   │   ├── api/                    # API client, Supabase config, round-specific callers (technical, hr, feedback)
 │   │   ├── components/
 │   │   │   ├── coding/             # CodeEditor, CodingRoundPage, ProblemStatementPanel
 │   │   │   ├── ml/                 # MLRoundPage
+│   │   │   ├── technical/          # TechnicalRoundPage (Core CS, DBMS, OS, Networks)
+│   │   │   ├── hr/                 # HRRoundPage (Behavioral, STAR, Leadership)
 │   │   │   ├── dashboard/          # DashboardPage, FeedbackPage, InterviewHistoryPage, TreeVisualization
 │   │   │   ├── setup/              # AuthPage, SetupPage, PrepScreen, LandingPage
 │   │   │   ├── shared/             # SharedNavbar, Logo
 │   │   │   └── voice/              # VoiceConversationPanel, MicButton, StateIndicator
 │   │   ├── hooks/                  # useVoiceConversation, useSpeechRecognition, useSpeechSynthesis
-│   │   └── router.tsx              # App routes definition
+│   │   └── router.tsx              # App routes definition (/coding, /ml, /technical, /hr)
 │   └── package.json
 └── .env.example                    # Environment variable documentation
 ```

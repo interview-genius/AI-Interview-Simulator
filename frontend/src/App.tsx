@@ -7,8 +7,9 @@ function App() {
   const location = useLocation();
   
   // Routes that handle their own navigation or are immersive views
-  const hideGlobalNav = ['/', '/auth', '/onboarding', '/coding', '/ml'];
+  const hideGlobalNav = ['/', '/auth', '/onboarding', '/coding', '/ml', '/technical', '/hr'];
   const showNav = !hideGlobalNav.includes(location.pathname);
+
 
   return (
     <div className="fs-grain" style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100vh', overflowX: 'hidden', background: 'var(--color-bg)' }}>

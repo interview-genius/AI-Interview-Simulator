@@ -81,9 +81,20 @@ export function PrepScreen() {
             <span className="fs-prep__meta-sep">·</span>
             <span className="fs-prep__meta-tag">{level}</span>
             <span className="fs-prep__meta-sep">·</span>
-            <span className="fs-prep__meta-tag">{mode === 'coding' ? 'Technical' : 'ML'}</span>
+            <span className="fs-prep__meta-tag">
+              {mode === 'coding'
+                ? 'Technical Coding'
+                : mode === 'ml'
+                ? 'ML System Design'
+                : mode === 'technical'
+                ? 'Technical Discussion'
+                : mode === 'hr'
+                ? 'HR & Behavioral'
+                : mode}
+            </span>
           </div>
         </header>
+
 
         <div className="fs-prep__grid">
           {/* Expectations */}
